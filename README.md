@@ -1,5 +1,5 @@
 ## GeochemMAF_code
-GeochemMAF: A Novel Multi-Agent Framework for Geochemical Anomaly Identification Based on Large Language 
+Code for Manuscript, titled "GeochemMAF: A Novel Multi-Agent Framework for Geochemical Anomaly Identification Based on Large Language”.
 
 ## Installation
 Recommended environment:
