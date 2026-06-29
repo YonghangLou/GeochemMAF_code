@@ -48,7 +48,18 @@ set GEOCHEM_LLM_MODEL=qwen3-max
 ## Usage Examples
 Due to the constraints of the project data agreement, the original data in the manuscript cannot be publicly released. To facilitate code reproducibility, this study provides a synthetic example, which supports the running of the code and the verification.
 
-(1) Run the workflow with the included synthetic example:
+(1) Input Data Expectations
+
+The workflow accepts tabular datasets in `csv`, `xlsx`, `xls`, or `json` format.
+
+Typical columns include:
+
+- `FID`(The individual identification number of each sample)
+- numeric geochemical variables such as `W`, `Sn`, `Mo`, `As`, `Cu`, ... , and `Zn`
+- an optional ore label column such as `Ore`
+- coordinate columns such as `Longitude` and `Latitude`
+
+(2) Run the workflow with the included synthetic example:
 
 ```bash
 python main.py --data examples/synthetic_geochem_data.csv --output examples/your_path__output --target Tungsten --study-area Nanling Metallogenic Belt
@@ -60,18 +71,7 @@ Or run the workflow with your dataset:
 python main.py --data path/to/your_data.csv --output your_path_output --target Target ore deposit --study-area YourStudyArea
 ```
 
-(2) Input Data Expectations
-
-The workflow accepts tabular datasets in `csv`, `xlsx`, `xls`, or `json` format.
-
-Typical columns include:
-
-- `FID`(The individual identification number of each sample)
-- numeric geochemical variables such as `W`, `Sn`, `Mo`, `As`, `Cu`, ... , and `Zn`
-- an optional ore label column such as `Ore`
-- coordinate columns such as `Longitude` and `Latitude`
-
-(3) Output files 
+(2) Output files 
 
 The workflow usually writes a multi-folder result package rather than a single output file. Interpretation of the main folders:
 
