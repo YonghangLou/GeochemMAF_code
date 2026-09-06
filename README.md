@@ -112,7 +112,7 @@ output/
 |-- feature_analysis/
 |   |-- correlation_analysis/
 |   |   |-- correlation_matrix_{pearson,spearman,kendall}.csv
-|   |   |-- high_correlations_*.csv
+|   |   |-- high_correlations_{pearson,spearman,kendall}.csv
 |   |   `-- correlation_heatmap.png
 |   |-- hierarchical_clustering/
 |   |   |-- hierarchical_clustering_results.json
@@ -123,7 +123,7 @@ output/
 |       |-- factor_loadings_heatmap.png
 |       `-- factor_scores.csv
 |-- SOM result/
-|   `-- som_filtered_elements
+|   `-- som_{filtered_elements,all_elements,raw_filtered_elements,raw_all_elements,preprocessed_filtered_elements,preprocessed_all_elements}/
 |       |-- U_Matrix_Enhanced.png
 |       |-- cluster_count_selection_reference.png
 |       |-- silhouette_reference.png
@@ -136,6 +136,7 @@ output/
 |       |-- main_elements_list.csv
 |       |-- known_sample_count_by_cluster.csv
 |       |-- known_sample_count_by_cluster.png
+|       |-- sample_cluster_spatial_map.png
 |       |-- geological_interpretation.md
 |       |-- component_planes/
 |       |   |-- *_component_plane.png
@@ -155,12 +156,21 @@ output/
 |   |-- best_model_train_confusion_matrix.png
 |   |-- best_model_confusion_matrix.png
 |   |-- best_model_predict_confusion_matrix.png
+|   |-- best_model_predict_confusion_matrix_youden.{png,csv}
 |   |-- best_model_fit_gap.png
 |   `-- best_model_permutation_importance.png
 |-- Key element analysis results/
 |   |-- log_log/
+|   |   |-- all_elements_boxplot.png
+|   |   `-- {element}_ca_log_log.png
 |   |-- Concentration distribution statistics/
+|   |   `-- {element}_distribution.png
 |   `-- Spatial distribution statistics/
+|       `-- {element}_spatial_distribution.png
+`-- auto_programming/
+    `-- auto_programming_*/
+        |-- generated_script.py
+        `-- execution_metrics.json
 ```
 
 The exact file set depends on the enabled modules, available labels, model branch, and optional evaluation settings.
