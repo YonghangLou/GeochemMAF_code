@@ -336,15 +336,15 @@ def _log_process_memory(logger_obj: logging.Logger, stage: str) -> None:
         if isinstance(val, (int, float)) and val > 0:
             parts.append(f"{key}={val:.2f}MB")
     if parts:
-        logger_obj.info(f"内存监测({stage}): " + ", ".join(parts))
+        logger_obj.info(f"Memory monitor ({stage}): " + ", ".join(parts))
 
 _MODEL_KEY_ALIASES: Dict[str, str] = {
     "som": "som",
     "self organizing map": "som",
     "self-organizing map": "som",
     "selforganizingmap": "som",
-    "自组织映射": "som",
-    "自组织映射神经网络": "som",
+    'self-organizing map': "som",
+    'self-organizing map neural network': "som",
 }
 
 
@@ -357,7 +357,7 @@ def _normalize_model_key(raw: Any) -> Optional[str]:
         return None
     if not s:
         return None
-    low = s.lower().strip(" <>`\"'，。,;；:：")
+    low = s.lower().strip(" <>`\"'.,;:")
     return _MODEL_KEY_ALIASES.get(low)
 
 
@@ -366,18 +366,18 @@ def _maximum_youden_operating_point(y_true: Any, scores: Any) -> Dict[str, Any]:
     y_arr = np.asarray(y_true).reshape(-1)
     score_arr = np.asarray(scores, dtype=float).reshape(-1)
     if y_arr.size != score_arr.size:
-        raise ValueError("Youden标签与得分数量不一致")
+        raise ValueError('Youden labels and scores have different lengths')
     mask = np.isfinite(score_arr) & np.isin(y_arr, [0, 1])
     y_valid = y_arr[mask].astype(int)
     score_valid = score_arr[mask].astype(float)
     if y_valid.size == 0 or np.unique(y_valid).size < 2:
-        raise ValueError("Youden阈值需要同时包含正类和负类的有效标签")
+        raise ValueError('Youden threshold selection requires valid labels from both positive and negative classes')
     fpr, tpr, thresholds = roc_curve(y_valid, score_valid, drop_intermediate=False)
     specificity = 1.0 - fpr
     youden = tpr - fpr
     finite = np.isfinite(thresholds) & np.isfinite(youden)
     if not np.any(finite):
-        raise ValueError("ROC未产生有限的Youden候选阈值")
+        raise ValueError('ROC analysis produced no finite candidate Youden threshold')
     maximum = float(np.max(youden[finite]))
     candidates = np.flatnonzero(finite & np.isclose(youden, maximum, rtol=0.0, atol=1e-12))
     best_index = int(candidates[0])
@@ -491,7 +491,7 @@ def _derive_radius_from_ca(
         radius = float(r_min)
         try:
             logger.info(
-                "盒计数半径估计: source=%s, points=%s, elements=%s, r_min=%.6g, r_max=%.6g, r_candidates=%s, pick=%.6g",
+                'Box-counting radius estimate: source=%s, points=%s, elements=%s, r_min=%.6g, r_max=%.6g, r_candidates=%s, pick=%.6g',
                 str(source),
                 int(point_count),
                 ",".join([str(x) for x in elem_preview]) if elem_preview else "NA",
@@ -650,17 +650,17 @@ def _hitl_disable(state: dict) -> None:
         cfg["interaction_mode"] = "auto"
 class DataScienceExpertAgent(BaseAgent):
     CAPABILITIES = [
-        "数据加载：CSV/Excel/JSON -> DataFrame",
-        "数据质量诊断：缺失/重复/数值列与坐标列检查与报告",
-        "数据清洗：缺失值、重复行、异常值（IQR）处理",
-        "数据转换：对数/Box-Cox/平方根/CLR、元素比值等",
-        "数据标准化：StandardScaler / MinMaxScaler",
-        "特征分析：相关性、因子载荷与特征筛选建议",
-        "建模与预测：SOM（自组织映射）基于量化误差(QE)的异常/潜力评分与阈值划分",
-        "模型解释：输出QE分数分布与高潜力样本索引",
+        'Data loading: CSV/Excel/JSON -> DataFrame',
+        'Data-quality diagnostics: missing values, duplicates, numeric columns, and coordinate-column checks with reports',
+        'Data cleaning: missing-value handling, duplicate removal, and IQR-based outlier treatment',
+        'Data transformation: log/Box-Cox/square-root/CLR transforms and element-ratio features',
+        'Data scaling: StandardScaler / MinMaxScaler',
+        'Feature analysis: correlations, factor loadings, and feature-selection suggestions',
+        'Modeling and prediction: SOM-based anomaly/potential scoring with quantization error (QE) and thresholding',
+        'Model interpretation: QE-score distributions and high-potential sample indexing',
     ]
     def __init__(self, output_dir: str='./output', llm=None):
-        role_description = '负责地球化学数据的预处理、特征工程和预测模型的选择、训练与评估。你需要根据数据特征智能选择合适的预处理方法和预测模型，为后续分析提供高质量的数据和可靠的预测结果。'
+        role_description = 'Responsible for geochemical data preprocessing, feature engineering, and prediction model selection, training, and evaluation. Select suitable preprocessing methods and prediction models according to the data characteristics, providing high-quality data and reliable predictions for downstream analysis.'
         super().__init__('DataScienceExpertAgent', role_description, llm)
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
@@ -693,10 +693,10 @@ class DataScienceExpertAgent(BaseAgent):
         _safe_register(
             SkillSpec(
                 id="data.load",
-                name="数据加载",
-                description="从CSV/Excel/JSON加载数据为DataFrame",
-                inputs={"file_path": "数据文件路径"},
-                outputs={"df": "加载后的 DataFrame"},
+                name='Data loading',
+                description='Load CSV/Excel/JSON data into a DataFrame',
+                inputs={"file_path": 'Data path'},
+                outputs={"df": 'loaded DataFrame'},
                 tags=("data", "io"),
             ),
             lambda *, ctx, file_path: self.load_data(str(file_path)),
@@ -704,10 +704,10 @@ class DataScienceExpertAgent(BaseAgent):
         _safe_register(
             SkillSpec(
                 id="data.clean",
-                name="数据清洗",
-                description="缺失值、重复行与异常值处理",
-                inputs={"df": "原始数据 DataFrame"},
-                outputs={"df": "清洗后的 DataFrame"},
+                name='Data cleaning',
+                description='Handle missing values, duplicate rows, and outliers',
+                inputs={"df": 'raw input DataFrame'},
+                outputs={"df": 'cleaned DataFrame'},
                 tags=("data", "preprocess"),
             ),
             lambda *, ctx, df: self.clean_data(df, config=ctx.config),
@@ -715,10 +715,10 @@ class DataScienceExpertAgent(BaseAgent):
         _safe_register(
             SkillSpec(
                 id="data.transform",
-                name="数据转换",
-                description="按分布特性进行对数/Box-Cox/平方根/CLR等转换",
-                inputs={"df": "清洗后的 DataFrame"},
-                outputs={"df": "转换后的 DataFrame"},
+                name='Data transformation',
+                description='Apply log/Box-Cox/square-root/CLR transforms according to distribution characteristics',
+                inputs={"df": 'cleaned DataFrame'},
+                outputs={"df": 'transformed DataFrame'},
                 tags=("data", "preprocess"),
             ),
             lambda *, ctx, df: self.transform_data(df, config=ctx.config),
@@ -726,10 +726,10 @@ class DataScienceExpertAgent(BaseAgent):
         _safe_register(
             SkillSpec(
                 id="data.scale",
-                name="数据标准化",
-                description="对数值列做 StandardScaler 或 MinMaxScaler",
-                inputs={"df": "转换后的 DataFrame"},
-                outputs={"df": "标准化后的 DataFrame"},
+                name='Data scaling',
+                description='Apply StandardScaler or MinMaxScaler to numeric columns',
+                inputs={"df": 'transformed DataFrame'},
+                outputs={"df": 'scaled DataFrame'},
                 tags=("data", "preprocess"),
             ),
             lambda *, ctx, df: self.scale_data(df, config=ctx.config),
@@ -737,10 +737,10 @@ class DataScienceExpertAgent(BaseAgent):
         _safe_register(
             SkillSpec(
                 id="data.validate",
-                name="数据校验",
-                description="检查缺失/重复/数值列与坐标列，并输出诊断结果",
-                inputs={"df": "数据 DataFrame"},
-                outputs={"results": "校验结果字典"},
+                name='Data validation',
+                description='Check missing values, duplicates, numeric columns, and coordinate columns and return diagnostics',
+                inputs={"df": 'input DataFrame'},
+                outputs={"results": 'validation-result dictionary'},
                 tags=("data", "quality"),
             ),
             lambda *, ctx, df: self.validate_data(df),
@@ -749,18 +749,18 @@ class DataScienceExpertAgent(BaseAgent):
     def load_data(self, file_path: str) -> pd.DataFrame:
         fn = self._get_skill_tool_callable("data.load", "tool.py", "load_data")
         if fn is None:
-            raise RuntimeError("data.load 工具未找到：skills/data-load/tool.py:load_data")
+            raise RuntimeError('data.load tool not found: skills/data-load/tool.py:load_data')
         return fn(str(file_path))
 
     def validate_data(self, df: pd.DataFrame) -> Dict[str, Any]:
         fn = self._get_skill_tool_callable("data.validate", "tool.py", "validate_data")
         if fn is None:
-            raise RuntimeError("data.validate 工具未找到：skills/data-validate/tool.py:validate_data")
+            raise RuntimeError('data.validate tool not found: skills/data-validate/tool.py:validate_data')
         return fn(df, data_analyzer=self.data_analyzer, logger=self.logger)
 
     def explain_model(self, model_results: Dict[str, Any], top_k: Optional[int] = None) -> Dict[str, Any]:
         if not isinstance(model_results, dict):
-            raise TypeError("model_results 必须是 dict")
+            raise TypeError('model_results must be a dict')
         best_name = model_results.get("best_model_name")
         best_name_display = self._display_model_name(best_name) if best_name else None
         fit_diag = model_results.get("best_model_fit_diagnosis")
@@ -796,17 +796,17 @@ class DataScienceExpertAgent(BaseAgent):
         perm_top = _take(perm)
         builtin_top = _take(builtin)
         lines: List[str] = []
-        lines.append(f"最佳模型: {best_name_display}" if best_name_display else "最佳模型: 未知")
+        lines.append(f"Best model: {best_name_display}" if best_name_display else 'Best model: Unknown')
         if isinstance(fit_diag, dict) and fit_diag.get("status"):
-            lines.append(f"拟合诊断: {fit_diag.get('status')}")
+            lines.append(f"Fit diagnosis: {fit_diag.get('status')}")
             recs = fit_diag.get("recommendations") or []
             if recs:
-                lines.append("建议: " + "；".join([str(r) for r in recs]))
+                lines.append('Recommendations: ' + "; ".join([str(r) for r in recs]))
         if perm_top:
-            lines.append("置换重要性Top:")
+            lines.append('Top permutation importance:')
             lines.extend([f"- {it['feature']}: {it['importance']:.6f}" for it in perm_top])
         elif builtin_top:
-            lines.append("模型内置重要性Top:")
+            lines.append('Top built-in feature importance:')
             lines.extend([f"- {it['feature']}: {it['importance']:.6f}" for it in builtin_top])
         return {
             "best_model_name": best_name,
@@ -927,21 +927,21 @@ class DataScienceExpertAgent(BaseAgent):
             state["artifacts"]["auto_programming_metrics"] = os.path.abspath(result.metrics_path)
 
         if not result.ok:
-            state.setdefault("errors", []).append(f"{self.agent_name}: 自动编程失败 - {result.error}")
-            state.setdefault("processing_history", []).append(f"{self.agent_name}: 自动编程失败")
+            state.setdefault("errors", []).append(f"{self.agent_name}: auto-programming failed - {result.error}")
+            state.setdefault("processing_history", []).append(f"{self.agent_name}: auto-programming failed")
             return df_scaled
 
-        state.setdefault("processing_history", []).append(f"{self.agent_name}: 自动编程已执行")
+        state.setdefault("processing_history", []).append(f"{self.agent_name}: auto-programming executed")
         if apply_mode != "replace_df":
             return df_scaled
         try:
             generated_df = pd.read_pickle(result.output_data_path)
             if not isinstance(generated_df, pd.DataFrame):
                 raise TypeError("generated output is not a DataFrame")
-            state.setdefault("processing_history", []).append(f"{self.agent_name}: 自动编程结果已替换当前数据")
+            state.setdefault("processing_history", []).append(f"{self.agent_name}: auto-programming result replaced the current data")
             return generated_df
         except Exception as e:
-            state.setdefault("errors", []).append(f"{self.agent_name}: 自动编程结果读取失败 - {e}")
+            state.setdefault("errors", []).append(f"{self.agent_name}: failed to read the auto-programming result - {e}")
             return df_scaled
 
     def _plot_roc_curve(
@@ -1008,7 +1008,7 @@ class DataScienceExpertAgent(BaseAgent):
             return out_path
         except Exception as e:
             try:
-                self.logger.warning(f"ROC 曲线绘制失败: {e}")
+                self.logger.warning(f"Failed to plot the ROC curve: {e}")
             except Exception:
                 pass
             return ""
@@ -1032,7 +1032,7 @@ class DataScienceExpertAgent(BaseAgent):
             return out_path
         except Exception as e:
             try:
-                self.logger.warning(f"PR 曲线绘制失败: {e}")
+                self.logger.warning(f"Failed to plot the PR curve: {e}")
             except Exception:
                 pass
             return ""
@@ -1070,7 +1070,7 @@ class DataScienceExpertAgent(BaseAgent):
             return out_path
         except Exception as e:
             try:
-                self.logger.warning(f"混淆矩阵绘制失败: {e}")
+                self.logger.warning(f"Failed to plot the confusion matrix: {e}")
             except Exception:
                 pass
             return ""
@@ -1107,7 +1107,7 @@ class DataScienceExpertAgent(BaseAgent):
             return out_path
         except Exception as e:
             try:
-                self.logger.warning(f"概率分布图绘制失败: {e}")
+                self.logger.warning(f"Failed to plot the score distribution: {e}")
             except Exception:
                 pass
             return ""
@@ -1138,7 +1138,7 @@ class DataScienceExpertAgent(BaseAgent):
             return out_path
         except Exception as e:
             try:
-                self.logger.warning(f"拟合差距图绘制失败: {e}")
+                self.logger.warning(f"Failed to plot the fit-gap chart: {e}")
             except Exception:
                 pass
             return ""
@@ -1194,7 +1194,7 @@ class DataScienceExpertAgent(BaseAgent):
             return out_path
         except Exception as e:
             try:
-                self.logger.warning(f"特征重要性图绘制失败: {e}")
+                self.logger.warning(f"Failed to plot the feature-importance chart: {e}")
             except Exception:
                 pass
             return ""
@@ -1248,7 +1248,7 @@ class DataScienceExpertAgent(BaseAgent):
             return out_path
         except Exception as e:
             try:
-                self.logger.warning(f"学习曲线绘制失败: {e}")
+                self.logger.warning(f"Failed to plot the learning curve: {e}")
             except Exception:
                 pass
             return ""
@@ -1286,7 +1286,7 @@ class DataScienceExpertAgent(BaseAgent):
             return out_path
         except Exception as e:
             try:
-                self.logger.warning(f"全元素箱线图绘制失败: {e}")
+                self.logger.warning(f"Failed to plot the all-element boxplot: {e}")
             except Exception:
                 pass
             return ""
@@ -1299,7 +1299,7 @@ class DataScienceExpertAgent(BaseAgent):
                 state['errors'] = []
             df = state.get('data')
             if df is None:
-                raise ValueError('数据未找到，请先加载数据')
+                raise ValueError('Data not found. Please load data first.')
             geology_expert_results = state.get('geology_expert_results')
             if not geology_expert_results and 'analysis_results' in state:
                 geology_expert_results = state['analysis_results'].get('geology')
@@ -1313,9 +1313,9 @@ class DataScienceExpertAgent(BaseAgent):
             if preprocessed_data is None:
                 preprocessed_data = state.get('processed_data')
             if geology_expert_results:
-                self.logger.info('检测到地质分析结果，进入预测阶段...')
+                self.logger.info('Detected geological-analysis results. Entering the prediction stage...')
                 if preprocessed_data is None:
-                    self.logger.info('预处理数据丢失，重新进行快速预处理 (跳过分析报告)...')
+                    self.logger.info('Preprocessed data is missing. Running quick preprocessing again (skipping the analysis report)...')
                     ctx = self.build_skill_context(state=state, config=state.get('config'))
                     df_cleaned = self._run_skill_or_fallback(ctx, "data.clean", lambda df: self.clean_data(df, config=state.get('config')), df=df)
                     df_transformed = self._run_skill_or_fallback(
@@ -1323,26 +1323,26 @@ class DataScienceExpertAgent(BaseAgent):
                     )
                     df_scaled = self._run_skill_or_fallback(ctx, "data.scale", lambda df: self.scale_data(df, config=state.get('config')), df=df_transformed)
                 else:
-                    self.logger.info('复用已有的预处理数据...')
+                    self.logger.info('Reusing the existing preprocessed data...')
                     df_scaled = preprocessed_data
                 df_scaled = self._maybe_run_auto_programming(state=state, df_scaled=df_scaled)
                 state['preprocessed_data'] = df_scaled
                 state['processed_data'] = df_scaled
                 preprocessing_strategy = state.get('preprocessing_strategy', 'Existing strategy reused')
             else:
-                self.logger.info('开始数据特征分析...')
+                self.logger.info('Starting data-feature analysis...')
                 self.data_analyzer.clear_cache()
-                exclude_cols = ['FID', 'Ore', '经度', '纬度']
+                exclude_cols = ['FID', 'Ore', '\u7ecf\u5ea6', '\u7eac\u5ea6']
                 geochemical_cols = [col for col in df.columns if col not in exclude_cols]
                 df_geochemical = df[geochemical_cols].copy()
-                self.logger.info(f'排除非地化列: {exclude_cols}')
-                self.logger.info(f'地化元素列数: {len(geochemical_cols)}')
+                self.logger.info(f'Excluded non-geochemical columns: {exclude_cols}')
+                self.logger.info(f'Number of geochemical element columns: {len(geochemical_cols)}')
                 quality_analysis = self.data_analyzer.analyze_data_quality(df_geochemical)
-                self.logger.info(f"数据质量分析完成: {quality_analysis['shape']}")
+                self.logger.info(f"Data-quality analysis completed: {quality_analysis['shape']}")
                 distribution_analysis = self.data_analyzer.analyze_distributions(df_geochemical)
-                self.logger.info(f'数据分布分析完成: {len(distribution_analysis)} 个特征')
+                self.logger.info(f'Data-distribution analysis completed for {len(distribution_analysis)} features')
                 preprocessing_recommendations = self.data_analyzer.recommend_preprocessing_strategy(df_geochemical)
-                self.logger.info(f"预处理建议生成完成: {len(preprocessing_recommendations['reasoning'])} 条建议")
+                self.logger.info(f"Generated {len(preprocessing_recommendations['reasoning'])} preprocessing recommendations")
                 data_report = self.data_analyzer.generate_data_report(df_geochemical, include_correlations=False)
                 reports_dir = os.path.join(self.output_dir, 'reports')
                 os.makedirs(reports_dir, exist_ok=True)
@@ -1351,24 +1351,24 @@ class DataScienceExpertAgent(BaseAgent):
                 boxplot_md = ""
                 if boxplot_out:
                     state["all_elements_boxplot_path"] = boxplot_out
-                    boxplot_md = "## 全元素箱线图\n\n![全元素箱线图](all_elements_boxplot.png)\n\n"
+                    boxplot_md = '## All-Element Boxplot\n\n![All-Element Boxplot](all_elements_boxplot.png)\n\n'
                 original_data_report = data_report
                 state["original_data_analysis_report_content"] = original_data_report
                 merged_report_path = os.path.join(reports_dir, "data_analysis_report.md")
                 merged_report_content = (
-                    "# 数据分析报告\n\n"
-                    "## 原始数据分析报告\n\n"
+                    '# Data Analysis Report\n\n'
+                    '## Raw-Data Analysis Report\n\n'
                     f"{original_data_report}\n\n"
                     f"{boxplot_md}"
                 )
                 _atomic_write_text(merged_report_path, merged_report_content)
-                self.logger.info(f"数据分析报告（合并）已保存到: {merged_report_path}")
-                task = f"基于以下数据分析结果，决定最佳预处理策略：\n\n数据概览:\n- 形状: {quality_analysis['shape']}\n- 数值列: {len(quality_analysis['numeric_columns'])} 个\n- 缺失值列: {len(quality_analysis['missing_values'])} 个\n\n预处理建议:\n{chr(10).join(preprocessing_recommendations['reasoning'][:5])}\n\n请选择：\n1. 使用推荐的标准预处理流程\n2. 使用自定义预处理流程\n3. 跳过某些预处理步骤\n\n请简要说明你的选择和理由（不要生成代码）。"
+                self.logger.info(f"Merged data-analysis report saved to: {merged_report_path}")
+                task = f"Based on the following data-analysis results, decide the best preprocessing strategy:\n\nData overview:\n- Shape: {quality_analysis['shape']}\n- Numeric columns: {len(quality_analysis['numeric_columns'])}\n- Columns with missing values: {len(quality_analysis['missing_values'])}\n\nPreprocessing recommendations:\n{chr(10).join(preprocessing_recommendations['reasoning'][:5])}\n\nPlease choose:\n1. Use the recommended standard preprocessing pipeline\n2. Use a custom preprocessing pipeline\n3. Skip some preprocessing steps\n\nBriefly explain your choice and rationale (do not generate code)."
                 preprocessing_strategy = self.decide(task, config=state.get('config'))
-                self.logger.info(f'预处理策略决定: {preprocessing_strategy[:200]}...')
+                self.logger.info(f'Preprocessing strategy decision: {preprocessing_strategy[:200]}...')
                 strategy_path = os.path.join(reports_dir, 'preprocessing_strategy.md')
-                _atomic_write_text(strategy_path, f'# 预处理策略\n\n{preprocessing_strategy}\n\n## 数据分析结果\n\n{data_report}')
-                self.logger.info(f'预处理策略已保存到: {strategy_path}')
+                _atomic_write_text(strategy_path, f'# Preprocessing Strategy\n\n{preprocessing_strategy}\n\n## Data-Analysis Results\n\n{data_report}')
+                self.logger.info(f'Preprocessing strategy saved to: {strategy_path}')
                 ctx = self.build_skill_context(state=state, config=state.get('config'))
                 df_cleaned = self._run_skill_or_fallback(ctx, "data.clean", lambda df: self.clean_data(df, config=state.get('config')), df=df)
                 df_transformed = self._run_skill_or_fallback(
@@ -1386,33 +1386,33 @@ class DataScienceExpertAgent(BaseAgent):
                 write_report = True if "write_preprocessed_report" not in step_overrides else bool(step_overrides.get("write_preprocessed_report"))
                 if _hitl_enabled(state) and _stdin_is_interactive():
                     if do_post_feature_analysis:
-                        method_lines: List[str] = ["- 分布分析（数值特征分布概览）"]
+                        method_lines: List[str] = ['- Distribution analysis (overview of numeric-feature distributions)']
                         if run_corr:
-                            method_lines.append("- 相关性分析（识别高相关特征对）")
+                            method_lines.append('- Correlation analysis (identify strongly correlated feature pairs)')
                         if run_hier:
-                            method_lines.append("- 层次聚类分析（特征相似性分组）")
+                            method_lines.append('- Hierarchical clustering (group features by similarity)')
                         if run_factor:
-                            method_lines.append("- 因子分析（潜在公共因子结构）")
+                            method_lines.append('- Factor analysis (identify latent common-factor structure)')
                         if write_report:
-                            method_lines.append("- 输出报告文件（data_analysis_report.md，包含原始+预处理后）")
+                            method_lines.append('- Write the report file (data_analysis_report.md, including raw + post-preprocessing results)')
                         else:
-                            method_lines.append("- 不输出报告文件")
+                            method_lines.append('- Do not write the report file')
                         self.logger.info(
-                            "【INPUT】HITL 子步骤：预处理后特征分析\n"
-                            "本步目标：复核预处理后的特征结构，为后续建模与地质解译提供依据\n"
-                            "计划方法：\n"
+                            '[INPUT] HITL substep: post-preprocessing feature analysis\n'
+                            'Goal: review the post-preprocessing feature structure to support downstream modeling and geological interpretation\n'
+                            'Planned methods:\n'
                             + "\n".join(method_lines)
                             + "\n"
-                            + f"当前默认开关：correlation={run_corr}, hierarchical={run_hier}, factor={run_factor}, write_report={write_report}\n"
-                            + "交互：回车=确认执行；skip=跳过；exit=退出HITL；或输入自然语言修改本子步骤的方法/内容"
+                            + f"Current default switches: correlation={run_corr}, hierarchical={run_hier}, factor={run_factor}, write_report={write_report}\n"
+                            + 'Interaction: Enter=confirm and run; skip=skip; exit=leave HITL; or type natural-language changes to this substep'
                         )
                         cmd = _input_with_log_prefix(self.logger).strip()
                         cmd_norm = cmd.strip().lower()
                         if cmd_norm in {"exit", "quit", "q"}:
                             _hitl_disable(state)
-                        elif cmd_norm in {"skip", "跳过"}:
+                        elif cmd_norm in {"skip", 'skip'}:
                             do_post_feature_analysis = False
-                            state.setdefault("processing_history", []).append(f"{self.agent_name}: 跳过预处理后特征分析")
+                            state.setdefault("processing_history", []).append(f"{self.agent_name}: skipped post-preprocessing feature analysis")
                         elif cmd:
                             default_payload = {
                                 "intent_summary": "",
@@ -1424,24 +1424,24 @@ class DataScienceExpertAgent(BaseAgent):
                                 "clarifying_question": "",
                             }
                             prompt = (
-                                "你是 DataScienceExpertAgent 的 HITL 子步骤解释器。"
-                                "当前子步骤是“预处理后特征分析”。用户会提出疑问或修改意见。"
+                                ' The current substep is post-preprocessing feature analysis. The user may ask questions or request modifications.'
+                                'The current substep is post-preprocessing feature analysis. The user may ask questions or request changes. '
                                 "\n\n"
-                                "严格约束：你只能修改当前子步骤的方法/内容，不能改变整体任务目标，不能要求新增数据源，不能要求改全局任务计划。"
-                                "你只能在以下白名单范围内给出可执行修改：\n"
-                                "- post_feature_analysis_parts.correlation: 是否做相关性分析\n"
-                                "- post_feature_analysis_parts.hierarchical: 是否做层次聚类分析\n"
-                                "- post_feature_analysis_parts.factor: 是否做因子分析\n"
-                                "- write_preprocessed_report: 是否写入预处理后数据分析报告文件\n"
+                                'You must not change the overall task objective, request new data sources, or modify the global task plan.'
+                                ' You may only make executable changes within the following whitelist:\n'
+                                '- post_feature_analysis_parts.correlation: whether to run correlation analysis\n'
+                                '- post_feature_analysis_parts.hierarchical: whether to run hierarchical clustering\n'
+                                '- post_feature_analysis_parts.factor: whether to run factor analysis\n'
+                                '- write_preprocessed_report: whether to write the post-preprocessing data-analysis report\n'
                                 "\n\n"
-                                "你必须只输出 JSON（不要输出其他文本，不要用 Markdown 代码块）。\n\n"
-                                f"当前默认设置：{default_payload}\n\n"
-                                f"用户输入：{cmd}\n\n"
-                                "请输出 JSON，字段：\n"
+                                'You must output JSON only. Do not output any other text and do not use Markdown code fences.\n\n'
+                                f"Current default settings: {default_payload}\n\n"
+                                f"User input: {cmd}\n\n"
+                                'Return JSON with the following fields:\n'
                                 "- intent_summary: string\n"
                                 "- assistant_reply: string\n"
-                                "- action: string，必须为 continue | skip | exit_hitl | modify_then_continue | modify_then_skip\n"
-                                "- post_feature_analysis_parts: object，包含 correlation/hierarchical/factor 的 boolean\n"
+                                '- action: string, must be continue | skip | exit_hitl | modify_then_continue | modify_then_skip\n'
+                                '- post_feature_analysis_parts: object, containing booleans for correlation/hierarchical/factor\n'
                                 "- write_preprocessed_report: boolean\n"
                                 "- need_clarification: boolean\n"
                                 "- clarifying_question: string\n"
@@ -1450,13 +1450,13 @@ class DataScienceExpertAgent(BaseAgent):
                             if isinstance(parsed, dict):
                                 reply = str(parsed.get("assistant_reply") or "").strip()
                                 if reply:
-                                    self.logger.info(f"HITL 回复：{reply}")
+                                    self.logger.info(f"HITL reply: {reply}")
                                 action = str(parsed.get("action") or "").strip()
                                 if action == "exit_hitl":
                                     _hitl_disable(state)
                                 if action in {"skip", "modify_then_skip"}:
                                     do_post_feature_analysis = False
-                                    state.setdefault("processing_history", []).append(f"{self.agent_name}: 跳过预处理后特征分析")
+                                    state.setdefault("processing_history", []).append(f"{self.agent_name}: skipped post-preprocessing feature analysis")
                                 p = parsed.get("post_feature_analysis_parts")
                                 if isinstance(p, dict):
                                     if "correlation" in p:
@@ -1468,9 +1468,9 @@ class DataScienceExpertAgent(BaseAgent):
                                 if "write_preprocessed_report" in parsed:
                                     write_report = bool(parsed.get("write_preprocessed_report"))
                 if do_post_feature_analysis:
-                    self.logger.info('重新分析预处理后的数据特征...')
+                    self.logger.info('Reanalyzing post-preprocessing data features...')
                     self.data_analyzer.clear_cache()
-                    exclude_cols = ['FID', 'Ore', '经度', '纬度', 'Longitude', 'Latitude', 'id', 'label', 'target']
+                    exclude_cols = ['FID', 'Ore', '\u7ecf\u5ea6', '\u7eac\u5ea6', 'Longitude', 'Latitude', 'id', 'label', 'target']
                     feature_cols_final = [c for c in df_scaled.columns if c not in exclude_cols and df_scaled[c].dtype in ['float64', 'int64']]
                     df_final_features = df_scaled[feature_cols_final]
                     final_distributions = self.data_analyzer.analyze_distributions(df_final_features)
@@ -1487,39 +1487,39 @@ class DataScienceExpertAgent(BaseAgent):
                     state['feature_analysis_results'] = feature_analysis_results
                     if not state.get('feature_cols'):
                         state['feature_cols'] = feature_cols_final
-                    self.logger.info(f'预处理后特征分析完成。更新了 {len(feature_cols_final)} 个特征的分析结果。')
+                    self.logger.info(f'Post-preprocessing feature analysis completed. Updated analysis results for {len(feature_cols_final)} features.')
                     if write_report:
                         preprocessed_data_report = self.data_analyzer.generate_data_report(df_final_features)
                         merged_report_path = os.path.join(reports_dir, "data_analysis_report.md")
                         boxplot_md = ""
                         try:
-                            boxplot_md = "## 全元素箱线图\n\n![全元素箱线图](all_elements_boxplot.png)\n\n" if state.get("all_elements_boxplot_path") else ""
+                            boxplot_md = '## All-Element Boxplot\n\n![All-Element Boxplot](all_elements_boxplot.png)\n\n' if state.get("all_elements_boxplot_path") else ""
                         except Exception:
                             boxplot_md = ""
                         merged_report_content = (
-                            "# 数据分析报告\n\n"
-                            "## 原始数据分析报告\n\n"
+                            '# Data Analysis Report\n\n'
+                            '## Raw-Data Analysis Report\n\n'
                             f"{original_data_report}\n\n"
                             f"{boxplot_md}"
-                            "## 预处理后数据分析报告\n\n"
+                            '## Post-Preprocessing Data Analysis Report\n\n'
                             f"{preprocessed_data_report}\n"
                         )
                         _atomic_write_text(merged_report_path, merged_report_content)
-                        self.logger.info(f"数据分析报告（合并）已保存到: {merged_report_path}")
+                        self.logger.info(f"Merged data-analysis report saved to: {merged_report_path}")
             geology_expert_results = state.get('geology_expert_results')
             if not geology_expert_results and 'analysis_results' in state:
                 geology_expert_results = state['analysis_results'].get('geology')
             if geology_expert_results or not geology_expert_enabled:
                 if geology_expert_enabled:
-                    self.logger.info('检测到地质分析结果，开始进行预测模型构建...')
+                    self.logger.info('Detected geological-analysis results. Starting predictive-model construction...')
                 else:
-                    self.logger.info('地质专家已关闭：使用预处理后的全部有效地球化学元素进行预测模型构建...')
+                    self.logger.info('Geology expert disabled: building the prediction model with all valid preprocessed geochemical elements...')
                     geology_expert_results = {}
                 feature_analysis_results = state.get('feature_analysis_results', {})
                 feature_cols = state.get('feature_cols', [])
                 if not feature_cols:
                     numeric_cols = df_scaled.select_dtypes(include=['int64', 'float64']).columns.tolist()
-                    exclude_cols = ['FID', 'Ore', '经度', '纬度', 'Longitude', 'Latitude', 'id', 'label', 'target']
+                    exclude_cols = ['FID', 'Ore', '\u7ecf\u5ea6', '\u7eac\u5ea6', 'Longitude', 'Latitude', 'id', 'label', 'target']
                     feature_cols = [c for c in numeric_cols if c not in exclude_cols and (not any((ex in c.lower() for ex in ['id', 'code'])))]
                     state['feature_cols'] = feature_cols
                 target_elements = []
@@ -1530,7 +1530,7 @@ class DataScienceExpertAgent(BaseAgent):
                 if target_elements:
                     filtered_feature_cols = self._filter_feature_cols_by_elements(feature_cols, target_elements)
                     if filtered_feature_cols and len(filtered_feature_cols) < len(feature_cols):
-                        self.logger.info(f'根据地质专家元素筛选特征：{len(feature_cols)} -> {len(filtered_feature_cols)}')
+                        self.logger.info(f'Filtered features according to geology-expert elements: {len(feature_cols)} -> {len(filtered_feature_cols)}')
                     if filtered_feature_cols:
                         feature_cols = filtered_feature_cols
                         state['feature_cols'] = feature_cols
@@ -1559,17 +1559,17 @@ class DataScienceExpertAgent(BaseAgent):
                     config=state.get('config'),
                 )
                 state['prediction_results'] = prediction_results
-                state['processing_history'].append(f'{self.agent_name}: 预测模型完成')
+                state['processing_history'].append(f'{self.agent_name}: predictive model completed')
                 state['next_agent'] = 'result_output'
             else:
                 history = state.get('processing_history', [])
                 last_history = history[-1] if history else ''
-                if 'GeologyExpertAgent' in last_history or '地质分析完成' in last_history:
-                    self.logger.info('检测到刚完成地质分析但未生成有效结果，可能存在问题，交由决策中心处理...')
+                if 'GeologyExpertAgent' in last_history or 'geological analysis completed' in last_history:
+                    self.logger.info('Detected a recent geological-analysis completion without valid outputs. Handing control to the decision center...')
                     state['next_agent'] = 'agent_decision'
                 else:
-                    self.logger.info('未检测到地质分析结果，转交地质专家...')
-                    state['processing_history'].append(f'{self.agent_name}: 数据预处理完成 (等待地质分析)')
+                    self.logger.info('No geological-analysis results were detected. Handing off to the geology expert...')
+                    state['processing_history'].append(f'{self.agent_name}: data preprocessing completed (waiting for geological analysis)')
                     state['next_agent'] = 'geology_analysis'
             if isinstance(state.get('prediction_results'), dict) and state.get('next_agent') != 'result_output':
                 state['next_agent'] = 'result_output'
@@ -1582,7 +1582,7 @@ class DataScienceExpertAgent(BaseAgent):
             if 'errors' not in state:
                 state['errors'] = []
             state['errors'].append(f'{self.agent_name}: {str(e)}')
-            state['processing_history'].append(f'{self.agent_name}: 运行失败 - {str(e)}')
+            state['processing_history'].append(f'{self.agent_name}: execution failed - {str(e)}')
             state['next_agent'] = 'agent_decision'
         return state
 
@@ -1698,7 +1698,7 @@ class DataScienceExpertAgent(BaseAgent):
                         square=n_elements <= 25,
                         cbar_kws={'shrink': 0.82, 'pad': 0.02, 'aspect': 30},
                     )
-                    ax.set_title(_localize_text('元素相关性热力图', lang=lang), fontsize=title_fontsize, pad=18)
+                    ax.set_title(_localize_text('Element Correlation Heatmap', lang=lang), fontsize=title_fontsize, pad=18)
                     rotate = 45 if n_elements <= 22 else 90
                     ax.tick_params(axis='x', labelrotation=rotate, labelsize=tick_fontsize)
                     ax.tick_params(axis='y', labelrotation=0, labelsize=tick_fontsize)
@@ -1710,7 +1710,7 @@ class DataScienceExpertAgent(BaseAgent):
                         label.set_fontsize(tick_fontsize)
                     cbar = ax.collections[0].colorbar
                     cbar.ax.tick_params(labelsize=cbar_tick_fontsize)
-                    cbar.set_label(_get_bilingual_text('相关系数', 'Correlation Coefficient', lang=lang), fontsize=cbar_label_fontsize)
+                    cbar.set_label(_get_bilingual_text('Correlation Coefficient', 'Correlation Coefficient', lang=lang), fontsize=cbar_label_fontsize)
                     plt.tight_layout(pad=2.0)
                     heatmap_path = os.path.join(output_dir, 'correlation_heatmap.png')
                     fig.savefig(heatmap_path, dpi=150, bbox_inches='tight', facecolor='white', format='png')
@@ -1780,8 +1780,8 @@ class DataScienceExpertAgent(BaseAgent):
             fig.patch.set_facecolor('white')
             ax.plot(xs, ys, marker='o', linewidth=2)
             ax.set_xlabel('Factor Index', fontsize=label_fontsize)
-            ax.set_ylabel(_localize_text('特征值', lang=lang), fontsize=label_fontsize)
-            ax.set_title(_localize_text('碎石图', lang=lang), fontsize=title_fontsize)
+            ax.set_ylabel(_localize_text('Eigenvalue', lang=lang), fontsize=label_fontsize)
+            ax.set_title(_localize_text('Scree Plot', lang=lang), fontsize=title_fontsize)
             ax.tick_params(axis='both', labelsize=tick_fontsize)
             ax.grid(True, linestyle='--', alpha=0.35)
             if 1 <= n_factors <= len(xs):
@@ -1834,12 +1834,12 @@ class DataScienceExpertAgent(BaseAgent):
                 center=0,
                 cbar_kws={'shrink': 0.82, 'pad': 0.02, 'aspect': 30},
             )
-            ax.set_title(_localize_text('因子载荷热力图', lang=lang), fontsize=title_fontsize, pad=18)
+            ax.set_title(_localize_text('Factor Loading Heatmap', lang=lang), fontsize=title_fontsize, pad=18)
             ax.tick_params(axis='x', labelrotation=0, labelsize=tick_fontsize)
             ax.tick_params(axis='y', labelrotation=0, labelsize=tick_fontsize)
             cbar = ax.collections[0].colorbar
             cbar.ax.tick_params(labelsize=cbar_tick_fontsize)
-            cbar.set_label(_get_bilingual_text('因子载荷', 'Factor Loading', lang=lang), fontsize=cbar_label_fontsize)
+            cbar.set_label(_get_bilingual_text('Factor Loading', 'Factor Loading', lang=lang), fontsize=cbar_label_fontsize)
             plt.tight_layout(pad=2.0)
             factor_loading_path = os.path.join(output_dir, 'factor_loadings_heatmap.png')
             fig.savefig(factor_loading_path, dpi=300, bbox_inches='tight', facecolor='white', format='png')
@@ -1910,8 +1910,8 @@ class DataScienceExpertAgent(BaseAgent):
             )
             is_zh = str(lang).lower().startswith("zh")
             if is_zh and chinese_font is not None:
-                ax.set_title("元素层次聚类树状图", fontsize=28, pad=14, fontproperties=chinese_font)
-                ax.set_ylabel("距离", fontsize=28, fontproperties=chinese_font)
+                ax.set_title('Hierarchical Clustering Dendrogram', fontsize=28, pad=14, fontproperties=chinese_font)
+                ax.set_ylabel('Distance', fontsize=28, fontproperties=chinese_font)
             elif is_zh:
                 ax.set_title("Hierarchical Clustering Dendrogram", fontsize=28, pad=14)
                 ax.set_ylabel("Distance", fontsize=28)
@@ -1959,7 +1959,7 @@ class DataScienceExpertAgent(BaseAgent):
                         square=n_elements <= 25,
                         cbar_kws={'shrink': 0.82, 'pad': 0.02, 'aspect': 30},
                     )
-                    ax.set_title(_localize_text('层次聚类重排后的相关性热力图', lang=lang), fontsize=28, pad=18)
+                    ax.set_title(_localize_text('Reordered Correlation Heatmap by Hierarchical Clustering', lang=lang), fontsize=28, pad=18)
                     rotate = 45 if n_elements <= 22 else 90
                     ax.tick_params(axis='x', labelrotation=rotate, labelsize=tick_size)
                     ax.tick_params(axis='y', labelrotation=0, labelsize=tick_size)
@@ -1971,7 +1971,7 @@ class DataScienceExpertAgent(BaseAgent):
                         label.set_fontsize(tick_size)
                     cbar = ax.collections[0].colorbar
                     cbar.ax.tick_params(labelsize=cbar_tick_size)
-                    cbar.set_label(_get_bilingual_text('相关系数', 'Correlation Coefficient', lang=lang), fontsize=24)
+                    cbar.set_label(_get_bilingual_text('Correlation Coefficient', 'Correlation Coefficient', lang=lang), fontsize=24)
                     plt.tight_layout(pad=2.0)
                     heatmap_path = os.path.join(output_dir, 'hierarchical_clustering_correlation_heatmap.png')
                     fig.savefig(heatmap_path, dpi=150, bbox_inches='tight', facecolor='white', format='png')
@@ -1983,21 +1983,21 @@ class DataScienceExpertAgent(BaseAgent):
 
     def _generate_feature_summary_for_geology(self, results: Dict[str, Any]) -> str:
         stage = str(results.get('stage', 'unknown'))
-        summary = f"特征分析结果（{stage}阶段）：\n"
-        summary += f"- 分析元素数量：{int(results.get('element_count', 0))}\n"
-        summary += f"- 有效样本数量：{int(results.get('sample_count', 0))}\n\n"
+        summary = f"Feature-analysis results ({stage} stage):\n"
+        summary += f"- Number of analyzed elements: {int(results.get('element_count', 0))}\n"
+        summary += f"- Number of valid samples: {int(results.get('sample_count', 0))}\n\n"
         pearson_corr = results.get('correlation_analysis', {}).get('pearson', {})
         high_correlations = pearson_corr.get('high_correlations', [])
-        summary += f'- 强相关性对（>0.7）数量：{len(high_correlations) if isinstance(high_correlations, list) else 0}\n'
+        summary += f'- Number of strong correlation pairs (>0.7): {len(high_correlations) if isinstance(high_correlations, list) else 0}\n'
         factor_loadings = (results.get('factor_analysis') or {}).get('factor_loadings', {})
         factor_count = (results.get('factor_analysis') or {}).get('factor_count', 0)
         if factor_loadings:
             try:
                 method = (results.get('factor_analysis') or {}).get('factor_selection_method', '')
-                method_text = f'（因子数选择：{method}）' if method else ''
-                summary += f'- 因子分析识别出{int(factor_count)}个主要因子{method_text}，分别反映不同的地质过程\n'
+                method_text = f' (factor-count selection: {method})' if method else ''
+                summary += f'- Factor analysis identified {int(factor_count)} major factors{method_text}, reflecting different geological processes\n'
             except Exception:
-                summary += '- 因子分析识别出主要因子，分别反映不同的地质过程\n'
+                summary += '- Factor analysis identified major factors that reflect different geological processes\n'
         hc = results.get('hierarchical_clustering') or {}
         if isinstance(hc, dict):
             try:
@@ -2005,12 +2005,12 @@ class DataScienceExpertAgent(BaseAgent):
             except Exception:
                 cc = 0
             if cc > 0:
-                summary += f'- 层次聚类簇数量（maxclust）：{cc}\n'
+                summary += f'- Number of hierarchical clusters (maxclust): {cc}\n'
         return summary
     def clean_data(self, df: pd.DataFrame, config: Optional[Dict[str, Any]]=None) -> pd.DataFrame:
         fn = self._get_skill_tool_callable("data.clean", "tool.py", "clean_data")
         if fn is None:
-            raise RuntimeError("data.clean 工具未找到：skills/data-clean/tool.py:clean_data")
+            raise RuntimeError('data.clean tool not found: skills/data-clean/tool.py:clean_data')
         return fn(
             df,
             decide_json=self.decide_json,
@@ -2021,7 +2021,7 @@ class DataScienceExpertAgent(BaseAgent):
     def transform_data(self, df: pd.DataFrame, config: Optional[Dict[str, Any]]=None) -> pd.DataFrame:
         fn = self._get_skill_tool_callable("data.transform", "tool.py", "transform_data")
         if fn is None:
-            raise RuntimeError("data.transform 工具未找到：skills/data-transform/tool.py:transform_data")
+            raise RuntimeError('data.transform tool not found: skills/data-transform/tool.py:transform_data')
         return fn(
             df,
             decide_json=self.decide_json,
@@ -2032,7 +2032,7 @@ class DataScienceExpertAgent(BaseAgent):
     def scale_data(self, df: pd.DataFrame, config: Optional[Dict[str, Any]]=None) -> pd.DataFrame:
         fn = self._get_skill_tool_callable("data.scale", "tool.py", "scale_data")
         if fn is None:
-            raise RuntimeError("data.scale 工具未找到：skills/data-scale/tool.py:scale_data")
+            raise RuntimeError('data.scale tool not found: skills/data-scale/tool.py:scale_data')
         return fn(
             df,
             decide=self.decide,
@@ -2141,24 +2141,24 @@ class DataScienceExpertAgent(BaseAgent):
         forced_model_key: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        self.logger.info('预测模型开始工作...')
+        self.logger.info('Starting predictive modeling...')
         geology_expert_enabled = bool((config or {}).get('geology_expert_enabled', True))
         learning_mode = ""
         if isinstance(config, dict):
             raw_mode = config.get("learning_mode")
             s = str(raw_mode or "").strip().lower()
-            if s in {"supervised", "监督", "监督学习", "有监督", "有监督学习", "1"}:
+            if s in {"supervised", '\u76d1\u7763', '\u76d1\u7763\u5b66\u4e60', '\u6709\u76d1\u7763', '\u6709\u76d1\u7763\u5b66\u4e60', "1"}:
                 learning_mode = "supervised"
-            elif s in {"unsupervised", "无监督", "无监督学习", "2"}:
+            elif s in {"unsupervised", '\u65e0\u76d1\u7763', '\u65e0\u76d1\u7763\u5b66\u4e60', "2"}:
                 learning_mode = "unsupervised"
-            elif s in {"self_supervised", "self-supervised", "自监督", "自监督学习", "3"}:
+            elif s in {"self_supervised", "self-supervised", '\u81ea\u76d1\u7763', '\u81ea\u76d1\u7763\u5b66\u4e60', "3"}:
                 learning_mode = "self_supervised"
             if not learning_mode:
                 learning_mode = "unsupervised"
                 config["learning_mode"] = learning_mode
         else:
             learning_mode = "unsupervised"
-        exclude_cols = {'FID', 'Ore', '经度', '纬度', 'Longitude', 'Latitude', 'id', 'label', 'target'}
+        exclude_cols = {'FID', 'Ore', '\u7ecf\u5ea6', '\u7eac\u5ea6', 'Longitude', 'Latitude', 'id', 'label', 'target'}
         feature_cols = [c for c in feature_cols if c in data.columns and c not in exclude_cols and (not any((ex in str(c).lower() for ex in ['id', 'code'])))]
         target_variable, label_meta = self._define_labels_by_learning_mode(data=data, geology_expert_results=geology_expert_results, learning_mode=learning_mode, config=config)
         try:
@@ -2189,18 +2189,18 @@ class DataScienceExpertAgent(BaseAgent):
             positive_spatial_profile = {}
         mode_to_models = {"supervised": ["som"], "self_supervised": ["som"], "unsupervised": ["som"]}
         allowed_models = mode_to_models.get(learning_mode, ["som"])
-        all_models = {"som": {"tuning": "可选：grid_m/grid_n/n_iter/sigma/lr（当前默认不自动调参）", "metric": "roc_auc"}}
+        all_models = {"som": {"tuning": 'Optional: grid_m/grid_n/n_iter/sigma/lr (automatic tuning is currently disabled by default)', "metric": "roc_auc"}}
         available_models = {k: v for k, v in all_models.items() if k in allowed_models}
         sampling_plan: Dict[str, Any] = {
             "train_test_split": {"test_size": 0.3, "stratify": True, "random_state": 42},
             "train_downsampling": {"enabled": False},
-            "note": "SOM权重以无监督方式训练；若存在正负标签(0/1)，仅使用训练部分标签进行QE->LogisticRegression概率校准。",
+            "note": 'SOM weights are trained without labels. If positive and negative labels (0/1) are available, only labels from the training partition are used for QE-to-LogisticRegression probability calibration.',
         }
         if learning_mode == "self_supervised":
             sampling_plan = {
                 "train_test_split": {"test_size": 0.3, "stratify": True, "random_state": 42},
                 "pseudo_labeling": {"enabled": False},
-                "note": "当前仅使用SOM(QE)进行评分；不启用伪标签迭代。",
+                "note": 'Only SOM(QE) scoring is used in the current configuration; pseudo-label iteration is disabled.',
             }
         try:
             if pos_count is not None and neg_count is not None:
@@ -2219,25 +2219,25 @@ class DataScienceExpertAgent(BaseAgent):
         display_names = {"som": "SOM(QE)"}
         list_lines = [f"- {display_names.get(k, k)}" for k in allowed_models if k in display_names]
         task = (
-            "你是成矿预测建模专家。当前系统仅保留 SOM(QE) 模型，请聚焦评估其适配性与调参必要性。\n"
-            "注意：数据在进入该步骤前已完成预处理与标准化，不要讨论或建议任何预处理策略。\n\n"
-            "样本与标签提示：本次正负样本定义规则已随学习方式确定（正=1，负=0，excluded=-1），具体规则见上下文 labeling_rule；不要提出或设计新的标签构建规则。\n\n"
-            "当前已确定学习方式（learning_mode）："
+            'You are a mineralization-potential predictive-modeling expert. The current system retains only the SOM(QE) model, so focus on whether it is appropriate for this dataset and whether tuning is necessary.\n'
+            'Important: the data have already been preprocessed and standardized before this step. Do not discuss or recommend any preprocessing strategy.\n\n'
+            'Sample-and-label note: the positive/negative label definition has already been determined by the selected learning mode (positive=1, negative=0, excluded=-1). Refer to the contextual field labeling_rule for details. Do not propose or design a new labeling rule.\n\n'
+            'Current learning mode: '
             + str(learning_mode)
             + "\n\n"
-            "当前模型（仅此一种）：\n"
+            'Current model (the only available option):\n'
             + "\n".join(list_lines)
             + "\n\n"
-            "系统现有评估规则：\n"
-            "- 主指标：ROC-AUC（若存在 Ore(0/1) 标签则评估；否则仅输出 QE 分数用于相对排序）\n"
-            "- 评估方式：训练/留出=70/30（若可分层则分层）\n\n"
-            "输出格式要求（必须严格遵守，且每段都要写满）：\n"
-            "1) 第一行：model_key: <som>\n"
-            "2) 第二行：metric: roc_auc\n"
-            "3) 第三行：tuning: <是否需要调参以及为何>\n"
-            "4) 第四行：suitability: <说明为什么SOM适合当前数据>\n"
-            "5) 下一行：reasoning: <2-5条要点：为什么最终选该模型，必须引用数据特征或类别分布>\n"
-            "6) 下一行：reliability: <1-3条要点：本次选择可能失败的情形与备用方案>"
+            'Current evaluation protocol:\n'
+            '- Primary metric: ROC-AUC (evaluate it when Ore(0/1) labels exist; otherwise output QE scores for relative ranking only)\n'
+            '- Validation scheme: train/holdout = 70/30 with stratification when feasible\n\n'
+            'Required output format (must be followed strictly, and every field must be filled):\n'
+            '1) First line: model_key: <som>\n'
+            '2) Second line: metric: roc_auc\n'
+            '3) Third line: tuning: <whether tuning is needed and why>\n'
+            '4) Fourth line: suitability: <why SOM is suitable for the current dataset>\n'
+            '5) Next line: reasoning: <2-5 bullet-style points explaining why this model is selected, explicitly referencing data characteristics or class distribution>\n'
+            '6) Next line: reliability: <1-3 points covering failure cases or backup options for this choice>'
         )
         geo_summary_text = geology_expert_results.get('summary') if isinstance(geology_expert_results, dict) else None
         if not geo_summary_text:
@@ -2282,7 +2282,7 @@ class DataScienceExpertAgent(BaseAgent):
         }
         forced_key_norm = _normalize_model_key(forced_model_key)
         if forced_key_norm and forced_key_norm in available_models and forced_key_norm in allowed_models:
-            self.logger.info(f"HITL：已强制使用模型 {self._display_model_name(forced_key_norm)}")
+            self.logger.info(f"HITL: forced model selection applied: {self._display_model_name(forced_key_norm)}")
             model_selection = f"model_key: {forced_key_norm}"
             model_selection_cot_steps: List[str] = []
         else:
@@ -2303,7 +2303,7 @@ class DataScienceExpertAgent(BaseAgent):
         model_selection_preview = ' '.join(str(model_selection_text).split())
         if len(model_selection_preview) > 400:
             model_selection_preview = model_selection_preview[:400] + '...(truncated)'
-        self.logger.info(f'模型选择决定(摘要): {model_selection_preview}')
+        self.logger.info(f'Model-selection decision (summary): {model_selection_preview}')
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         model_selection_md_content = ""
         try:
@@ -2311,19 +2311,19 @@ class DataScienceExpertAgent(BaseAgent):
             os.makedirs(reports_dir, exist_ok=True)
             extra_lines: List[str] = []
             if model_selection_cot_steps:
-                extra_lines.extend(["", "## 思维链（CoT）", ""])
+                extra_lines.extend(["", '## Chain Of Thought (CoT)', ""])
                 for i, s in enumerate(model_selection_cot_steps[:12], start=1):
                     extra_lines.append(f"{i}. {str(s).strip()}")
                 extra_lines.append("")
             model_selection_md_content = "\n".join(
                 [
-                    "# 模型选择输出",
+                    '# Model Selection Output',
                     "",
-                    f"- 时间: {timestamp}",
-                    f"- 数据形状: {data.shape}",
-                    f"- 特征数: {len(feature_cols)}",
+                    f"- Timestamp: {timestamp}",
+                    f"- Data shape: {data.shape}",
+                    f"- Feature count: {len(feature_cols)}",
                     "",
-                    "## 输出内容",
+                    '## Output Content',
                     "",
                     str(model_selection).strip(),
                     "",
@@ -2331,18 +2331,18 @@ class DataScienceExpertAgent(BaseAgent):
                 ]
             )
         except Exception as e:
-            self.logger.warning(f'生成模型选择输出内容失败: {e}')
+            self.logger.warning(f'Failed to build the model-selection output content: {e}')
         prepared_data = self._prepare_prediction_data(data, geology_expert_results, feature_analysis_results)
         selected_features = feature_cols.copy()
         geo_summary = geology_expert_results.get('summary', str(geology_expert_results)[:500])
-        task = f'分析当前特征列表是否足够进行准确的成矿潜力预测。现有特征：{selected_features}，数据形状：{data.shape}，地质分析结果摘要：{geo_summary}'
+        task = f'Assess whether the current feature list is sufficient for accurate mineralization-potential prediction. Current features: {selected_features}. Data shape: {data.shape}. Geological-analysis summary: {geo_summary}'
         feature_decision = self.decide(task, config=config)
         if '```python' in feature_decision:
             text_part = feature_decision.split('```python')[0].strip()
-            self.logger.info(f'特征决策: {text_part} [代码已保存]')
+            self.logger.info(f'Feature decision: {text_part} [generated code has been saved]')
         else:
-            self.logger.info(f'特征决策: {feature_decision}')
-        _log_process_memory(self.logger, "训练前")
+            self.logger.info(f'Feature decision: {feature_decision}')
+        _log_process_memory(self.logger, 'before training')
         model_results = self._train_and_evaluate_models(
             data[selected_features],
             target_variable,
@@ -2353,11 +2353,11 @@ class DataScienceExpertAgent(BaseAgent):
             full_data_for_graph=prepared_data,
             qe_calibration_enabled=bool((config or {}).get("som_qe_calibration_enabled", True)),
         )
-        _log_process_memory(self.logger, "训练后")
+        _log_process_memory(self.logger, 'after training')
         if 'best_model' in model_results:
             predictions = self._generate_predictions(data[selected_features], model_results['best_model'], selected_features, previous_predictions, target_variable)
         else:
-            predictions = {'probabilities': [0.5] * len(data), 'predictions': [0] * len(data), 'feature_importance': {feature: 0.0 for feature in selected_features}, 'message': '未找到合适的最佳模型', 'high_potential_count': 0}
+            predictions = {'probabilities': [0.5] * len(data), 'predictions': [0] * len(data), 'feature_importance': {feature: 0.0 for feature in selected_features}, 'message': 'No suitable best model was found', 'high_potential_count': 0}
         if isinstance(predictions, dict) and (not predictions.get('feature_importance')):
             fallback_importance = model_results.get('best_model_feature_importance')
             if isinstance(fallback_importance, list) and fallback_importance:
@@ -2382,9 +2382,9 @@ class DataScienceExpertAgent(BaseAgent):
             evaluation_report_path = os.path.join(reports_dir, 'model_selection_and_evaluation.md')
             merged_content = (model_selection_md_content.strip() + "\n\n---\n\n" + str(evaluation_report).strip() + "\n").lstrip()
             _atomic_write_text(evaluation_report_path, merged_content)
-            self.logger.info(f'模型选择与评估报告已保存到: {evaluation_report_path}')
+            self.logger.info(f'Model-selection and evaluation report saved to: {evaluation_report_path}')
         except Exception as e:
-            self.logger.warning(f'保存模型选择与评估报告失败: {e}')
+            self.logger.warning(f'Failed to save the model-selection and evaluation report: {e}')
         predictions_summary = {k: v for k, v in predictions.items() if k not in ['probabilities', 'predictions', 'confidence', 'high_potential_indices']}
         predictions_summary['sample_count'] = len(predictions.get('predictions', []))
         predictions_summary['positive_count'] = sum(predictions.get('predictions', []))
@@ -2399,9 +2399,9 @@ class DataScienceExpertAgent(BaseAgent):
         features_str = str(selected_features)
         if len(features_str) > 2000:
             features_str = features_str[:2000] + '...(truncated)'
-        task = f'基于以下模型结果和预测结果生成详细的模型解释：\n1. 模型结果摘要：{model_results_summary}\n2. 预测结果摘要：{predictions_summary}\n3. 选择的特征：{features_str}'
+        task = f'Generate a detailed model interpretation based on the following information:\n1. Model-results summary: {model_results_summary}\n2. Prediction-results summary: {predictions_summary}\n3. Selected features: {features_str}'
         model_explanation = self.decide(task, config=config)
-        self.logger.info('模型解释已生成')
+        self.logger.info('Model interpretation generated.')
         som_cluster_analysis = None
         som_all_elements_analysis = None
         som_filtered_elements_analysis = None
@@ -2443,17 +2443,17 @@ class DataScienceExpertAgent(BaseAgent):
             if pre_ready:
                 som_input_data = preprocessed_candidate
                 som_data_source = "preprocessed"
-                self.logger.info("SOM输入数据源：预处理后数据")
+                self.logger.info('SOM input source: preprocessed data')
                 if som_use_raw_data_enabled and raw_ready:
-                    self.logger.info("已开启SOM原始数据附加分支：将在默认预处理分支基础上额外运行原始数据分支")
+                    self.logger.info('SOM raw-data auxiliary branch enabled: an additional raw-data branch will be run alongside the default preprocessed branch')
                 elif som_use_raw_data_enabled and not raw_ready:
-                    self.logger.warning("已开启SOM原始数据输入，但原始数据缺少坐标列或特征列，仅运行预处理后数据分支")
+                    self.logger.warning('SOM raw-data input is enabled, but the raw data lack coordinate columns or feature columns; only the preprocessed branch will be run')
             elif som_use_raw_data_enabled and raw_ready:
                 som_input_data = raw_candidate
                 som_data_source = "raw"
-                self.logger.warning("预处理后数据缺少坐标列或特征列，回退为仅运行原始数据分支")
+                self.logger.warning('The preprocessed data lack coordinate columns or feature columns; falling back to the raw-data-only branch')
             else:
-                self.logger.warning("SOM输入数据缺少坐标列或特征列，已跳过SOM聚类分支")
+                self.logger.warning('The SOM input data lack coordinate columns or feature columns; the SOM clustering branch has been skipped')
 
             x_col, y_col = _detect_coordinate_columns(som_input_data) if isinstance(som_input_data, pd.DataFrame) else (None, None)
             if x_col and y_col and x_col in som_input_data.columns and y_col in som_input_data.columns:
@@ -2477,7 +2477,7 @@ class DataScienceExpertAgent(BaseAgent):
                         numeric_cols = run_df.select_dtypes(include=["int64", "float64"]).columns.tolist()
                     except Exception:
                         numeric_cols = []
-                    exclude_cols = {"FID", "Ore", "经度", "纬度", "Longitude", "Latitude", "id", "label", "target"}
+                    exclude_cols = {"FID", "Ore", '\u7ecf\u5ea6', '\u7eac\u5ea6', "Longitude", "Latitude", "id", "label", "target"}
                     all_elements = [
                         c
                         for c in numeric_cols
@@ -2510,7 +2510,7 @@ class DataScienceExpertAgent(BaseAgent):
                             enable_shap=False,
                         )
                     else:
-                        self.logger.info(f"SOM全元素实验已关闭，跳过 {source_name} all_elements 运行")
+                        self.logger.info(f"SOM all-elements experiment disabled; skipping the {source_name} all_elements run")
                     if run_elements_filtered:
                         run_filtered_analysis = run_som_cluster_analysis_from_df(
                             df=run_df,
@@ -2613,12 +2613,12 @@ class DataScienceExpertAgent(BaseAgent):
                     if geology_expert_enabled and isinstance(som_all_elements_analysis, dict):
                         ctx = _build_som_interp_context(tag="all_elements", analysis_obj=som_all_elements_analysis, elements=elements_all_for_run)
                         prompt = (
-                            "你是一名地球化学找矿地质解译专家。请基于以下SOM聚类运行摘要，给出该运行的地质解译与勘查建议。\n"
-                            "要求：\n"
-                            "1) 只输出中文正文，不要输出JSON，不要使用Markdown代码块；可以使用小标题。\n"
-                            "2) 必须提到：元素集合规模、聚类数量/分带含义、与目标成矿元素的关系、下一步验证建议。\n"
-                            "3) 允许在不确定处用“可能/倾向于”。\n\n"
-                            f"SOM运行摘要：{ctx}"
+                            'You are a geochemical mineral-exploration interpretation expert. Based on the following SOM clustering summary, provide a geological interpretation and exploration recommendations for this run.\n'
+                            'Requirements:\n'
+                            '1) Output plain English prose only. Do not return JSON and do not use Markdown code blocks. Short section headings are allowed.\n'
+                            '2) You must mention: the size of the element set, the number of clusters and/or zoning meaning, the relationship to target mineralization-related elements, and recommendations for the next validation step.\n'
+                            "3) When uncertainty exists, expressions such as 'may' or 'is likely to' are allowed.\n\n"
+                            f"SOM run summary: {ctx}"
                         )
                         text = self.decide(prompt, config=config)
                         path = _write_som_interp(analysis_obj=som_all_elements_analysis, text=text)
@@ -2628,12 +2628,12 @@ class DataScienceExpertAgent(BaseAgent):
                             tag="filtered_elements", analysis_obj=som_filtered_elements_analysis, elements=elements_for_som_filtered
                         )
                         prompt = (
-                            "你是一名地球化学找矿地质解译专家。请基于以下SOM聚类运行摘要，给出该运行的地质解译与勘查建议。\n"
-                            "要求：\n"
-                            "1) 只输出中文正文，不要输出JSON，不要使用Markdown代码块；可以使用小标题。\n"
-                            "2) 必须提到：筛选元素集合带来的侧重点、聚类数量/分带含义、与目标成矿元素的关系、下一步验证建议。\n"
-                            "3) 允许在不确定处用“可能/倾向于”。\n\n"
-                            f"SOM运行摘要：{ctx}"
+                            'You are a geochemical mineral-exploration interpretation expert. Based on the following SOM clustering summary, provide a geological interpretation and exploration recommendations for this run.\n'
+                            'Requirements:\n'
+                            '1) Output plain English prose only. Do not return JSON and do not use Markdown code blocks. Short section headings are allowed.\n'
+                            '2) You must mention: the analytical focus introduced by the filtered element set, the number of clusters and/or zoning meaning, the relationship to target mineralization-related elements, and recommendations for the next validation step.\n'
+                            "3) When uncertainty exists, expressions such as 'may' or 'is likely to' are allowed.\n\n"
+                            f"SOM run summary: {ctx}"
                         )
                         text = self.decide(prompt, config=config)
                         path = _write_som_interp(analysis_obj=som_filtered_elements_analysis, text=text)
@@ -2722,7 +2722,7 @@ class DataScienceExpertAgent(BaseAgent):
                             _run_qe_for_container(run_container_obj, run_df, str(run_x_col), str(run_y_col))
         except Exception as e:
             try:
-                self.logger.warning(f"SOM聚类/QE产物生成失败: {e}")
+                self.logger.warning(f"Failed to generate SOM clustering/QE artifacts: {e}")
             except Exception:
                 pass
 
@@ -2847,7 +2847,7 @@ class DataScienceExpertAgent(BaseAgent):
             y2, expansion_meta = self._expand_positive_samples_if_needed(data=data, y=y)
             meta = {
                 "learning_mode": "supervised",
-                "label_rule": "Ore==1为正，其余为负；缺失为excluded(-1)；低正样本比例时从负样本(0)中按坐标近邻扩充正样本",
+                "label_rule": 'Ore==1 is positive and all other known Ore values are negative. Missing Ore is treated as excluded (-1). When the positive-sample ratio is too low, additional positives are expanded from negative samples (0) using coordinate-neighbor proximity.',
                 "label_source": "Ore",
                 "positive_expansion": expansion_meta,
             }
@@ -2864,7 +2864,7 @@ class DataScienceExpertAgent(BaseAgent):
                 y.loc[pos_idx] = 1
             except Exception:
                 pass
-        return (y, {"learning_mode": "supervised", "label_rule": "回退：potential_areas 为正，其余为负（无 Ore）", "label_source": "geology_expert_results.potential_areas"})
+        return (y, {"learning_mode": "supervised", "label_rule": 'Fallback rule: potential_areas are positive and all remaining samples are negative when Ore is unavailable.', "label_source": "geology_expert_results.potential_areas"})
 
     def _define_labels_self_supervised(self, *, data: pd.DataFrame, geology_expert_results: Dict[str, Any], fallback_feature_cols: Optional[List[str]] = None, config: Optional[Dict[str, Any]] = None) -> Tuple[pd.Series, Dict[str, Any]]:
         if "Ore" in data.columns:
@@ -2875,7 +2875,7 @@ class DataScienceExpertAgent(BaseAgent):
             y.loc[ore == 1] = 1
             meta = {
                 "learning_mode": "self_supervised",
-                "label_rule": "初始阶段：从(标签=0)中随机采样与正样本等量作为负样本；训练阶段：基于模型高置信预测生成伪标签并迭代扩充训练集；其余为excluded(-1)",
+                "label_rule": 'Initial stage: randomly sample the same number of negatives from label=0 as the positive samples. Training stage: generate pseudo-labels from high-confidence model predictions and iteratively expand the training set. All remaining samples are excluded (-1).',
                 "label_source": "Ore",
             }
             return (y, meta)
@@ -2884,7 +2884,7 @@ class DataScienceExpertAgent(BaseAgent):
             y,
             {
                 "learning_mode": "self_supervised",
-                "label_rule": "无 Ore 标签：无法初始化(标签=0)负采样；全部样本视为无标签(excluded=-1)",
+                "label_rule": 'Without Ore labels, negative sampling from label=0 cannot be initialized; all samples are treated as unlabeled and excluded (-1).',
                 "label_source": "none",
             },
         )
@@ -2893,9 +2893,9 @@ class DataScienceExpertAgent(BaseAgent):
         if "Ore" in data.columns:
             ore = pd.to_numeric(data["Ore"], errors="coerce").fillna(0).astype(int)
             y = ore.where(ore == 1, 0).astype(int)
-            return (y, {"learning_mode": "unsupervised", "label_rule": "若存在Ore标签：Ore==1为正，其余为负；标签不参与SOM权重训练和样本扩充/采样，仅使用训练部分标签进行QE概率校准，并用于留出评价", "label_source": "Ore"})
+            return (y, {"learning_mode": "unsupervised", "label_rule": 'When Ore labels are available, Ore==1 is positive and other known values are negative. Labels are not used to train SOM weights or for sample augmentation/sampling. Only training-partition labels are used for QE probability calibration; held-out labels are used for evaluation.', "label_source": "Ore"})
         y = pd.Series([0] * len(data), index=data.index, dtype=int)
-        return (y, {"learning_mode": "unsupervised", "label_rule": "无Ore标签：全部样本视为无标签（仅做无监督训练），评估不使用标签", "label_source": "none"})
+        return (y, {"learning_mode": "unsupervised", "label_rule": 'Without Ore labels, all samples are treated as unlabeled for unsupervised training and no labels are used in evaluation.', "label_source": "none"})
 
     def _define_labels_by_learning_mode(
         self,
@@ -2908,7 +2908,7 @@ class DataScienceExpertAgent(BaseAgent):
         mode = str(learning_mode or "").strip().lower()
         fallback_feature_cols = None
         try:
-            exclude_cols = {'FID', 'Ore', '经度', '纬度', 'Longitude', 'Latitude', 'id', 'label', 'target'}
+            exclude_cols = {'FID', 'Ore', '\u7ecf\u5ea6', '\u7eac\u5ea6', 'Longitude', 'Latitude', 'id', 'label', 'target'}
             fallback_feature_cols = [c for c in data.columns if c not in exclude_cols]
         except Exception:
             fallback_feature_cols = None
@@ -2918,15 +2918,15 @@ class DataScienceExpertAgent(BaseAgent):
             return self._define_labels_self_supervised(data=data, geology_expert_results=geology_expert_results, fallback_feature_cols=fallback_feature_cols, config=config)
         return self._define_labels_supervised(data=data, geology_expert_results=geology_expert_results, config=config)
     def _create_target_variable(self, data: pd.DataFrame, geology_expert_results: Dict) -> pd.Series:
-        self.logger.info('创建目标变量...')
+        self.logger.info('Creating target variable...')
         if 'Ore' not in data.columns:
-            self.logger.warning('警告：Ore列不存在，将返回全零数组')
+            self.logger.warning('Warning: the Ore column is missing; a zero-only target array will be returned')
             return pd.Series([0] * len(data))
         target = data['Ore'].astype(int)
         target = target.where(target == 1, 0)
         pos_count = (target == 1).sum()
         neg_count = (target == 0).sum()
-        self.logger.info(f'目标变量创建完成，正样本: {pos_count}, 负样本: {neg_count}')
+        self.logger.info(f'Target variable created. Positive samples: {pos_count}, negative samples: {neg_count}')
         return target
     def _train_and_evaluate_models(
         self,
@@ -3098,9 +3098,9 @@ class DataScienceExpertAgent(BaseAgent):
                 auc_gap = None
         recommendations: List[str] = []
         if fit_status == "overfit":
-            recommendations = ["减小网格大小(grid_m/grid_n)", "增大sigma", "降低n_iter", "提高decision_threshold"]
+            recommendations = ['Decrease the grid size (grid_m/grid_n)', 'Increase sigma', 'Reduce n_iter', 'Increase decision_threshold']
         elif fit_status == "underfit":
-            recommendations = ["增大网格大小(grid_m/grid_n)", "降低sigma", "增大n_iter", "降低decision_threshold"]
+            recommendations = ['Increase the grid size (grid_m/grid_n)', 'Decrease sigma', 'Increase n_iter', 'Decrease decision_threshold']
         fit_diagnosis = {"status": fit_status, "auc_gap": auc_gap, "recommendations": recommendations}
 
         som_result: Dict[str, Any] = {
@@ -3245,7 +3245,7 @@ class DataScienceExpertAgent(BaseAgent):
                         best_details["predict_confusion_matrix_youden"] = predict_cm_youden
                         best_details["full_region_youden"] = youden_summary
                     except Exception as e:
-                        self.logger.warning(f"全区最大Youden混淆矩阵输出失败: {e}")
+                        self.logger.warning(f"Failed to export the full-region maximum-Youden confusion matrix: {e}")
 
                 if train_metrics.get("roc_auc") is not None and test_metrics.get("roc_auc") is not None:
                     try:
@@ -3297,7 +3297,7 @@ class DataScienceExpertAgent(BaseAgent):
                     best_details["artifacts"] = artifacts
                     results[best_model_name] = best_details
         except Exception as e:
-            self.logger.warning(f"计算置换特征重要性失败: {e}")
+            self.logger.warning(f"Failed to compute permutation feature importance: {e}")
 
         self.best_model = best_model
         self.model_name = best_model_name
@@ -3305,79 +3305,79 @@ class DataScienceExpertAgent(BaseAgent):
     def _generate_evaluation_report(self, model_results: Dict[str, Any]) -> str:
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         lines: List[str] = []
-        lines.append('# 模型评估报告')
+        lines.append('# Model Evaluation Report')
         lines.append('')
-        lines.append(f'- 生成时间: {timestamp}')
+        lines.append(f'- Generated at: {timestamp}')
         split = model_results.get('train_test_split')
-        holdout_label = "测试集"
+        holdout_label = 'Test set'
         if isinstance(split, dict):
             role = str(split.get("holdout_role") or "").strip().lower()
             if role == "validation":
-                holdout_label = "验证集"
-            holdout_size = split.get("val_size") if holdout_label == "验证集" else split.get("test_size")
-            lines.append(f"- 训练集(全量): {split.get('train_size')}，训练集(采样后): {split.get('train_used_size')}，{holdout_label}: {holdout_size}")
-            lines.append(f"- 训练集类别(全量): pos={split.get('train_pos')} neg={split.get('train_neg')}；训练集类别(采样后): pos={split.get('train_used_pos')} neg={split.get('train_used_neg')}")
+                holdout_label = 'Validation set'
+            holdout_size = split.get("val_size") if holdout_label == 'Validation set' else split.get("test_size")
+            lines.append(f"- Training set (full): {split.get('train_size')}; training set (after sampling): {split.get('train_used_size')}; {holdout_label}: {holdout_size}")
+            lines.append(f"- Training-class counts (full): pos={split.get('train_pos')} neg={split.get('train_neg')}; training-class counts (after sampling): pos={split.get('train_used_pos')} neg={split.get('train_used_neg')}")
             if split.get("all_size") is not None:
-                lines.append(f"- 预测集(全量数据): {split.get('all_size')}")
+                lines.append(f"- Prediction set (full dataset): {split.get('all_size')}")
         dataset_info = model_results.get("_dataset_info")
         if isinstance(dataset_info, dict):
             lines.append("")
-            lines.append("## 数据集情况")
+            lines.append('## Dataset Overview')
             learning_mode = dataset_info.get("learning_mode")
             if learning_mode:
-                lines.append(f"- 学习方式: {learning_mode}")
+                lines.append(f"- Learning mode: {learning_mode}")
             ds_shape = dataset_info.get("data_shape")
             if ds_shape:
-                lines.append(f"- 数据形状: {ds_shape}")
+                lines.append(f"- Data shape: {ds_shape}")
             feature_count = dataset_info.get("feature_count")
             if feature_count is not None:
-                lines.append(f"- 特征数: {feature_count}")
+                lines.append(f"- Feature count: {feature_count}")
             dist = dataset_info.get("class_distribution")
             if isinstance(dist, dict):
-                lines.append(f"- 有效样本类别(剔除excluded=-1后): pos={dist.get('positive')} neg={dist.get('negative')}；excluded={dist.get('excluded')}")
+                lines.append(f"- Effective sample distribution (after excluding excluded=-1): pos={dist.get('positive')} neg={dist.get('negative')}; excluded={dist.get('excluded')}")
             label_meta = dataset_info.get("label_meta")
             if isinstance(label_meta, dict):
                 label_source = label_meta.get("label_source")
                 label_rule = label_meta.get("label_rule")
                 if label_source:
-                    lines.append(f"- 标签来源: {label_source}")
+                    lines.append(f"- Label source: {label_source}")
                 if label_rule:
-                    lines.append(f"- 标签规则: {label_rule}")
+                    lines.append(f"- Label rule: {label_rule}")
                 exp = label_meta.get("positive_expansion")
                 if isinstance(exp, dict) and exp.get("enabled"):
                     trig = bool(exp.get("triggered"))
                     coord_cols = exp.get("coord_cols")
                     coord_text = ""
                     if isinstance(coord_cols, dict) and coord_cols.get("x") and coord_cols.get("y"):
-                        coord_text = f"，坐标列=({coord_cols.get('x')},{coord_cols.get('y')})"
+                        coord_text = f", coordinate columns=({coord_cols.get('x')},{coord_cols.get('y')})"
                     if trig:
                         lines.append(
-                            f"- 正样本扩充: 已触发(阈值={exp.get('ratio_threshold')}, k={exp.get('k_neighbors')})"
-                            f"；原始正样本={exp.get('original_positive_count')}，新增正样本={exp.get('added_positive_count')}，扩充后正样本={exp.get('expanded_positive_count')}{coord_text}"
+                            f"- Positive-sample expansion: triggered (threshold={exp.get('ratio_threshold')}, k={exp.get('k_neighbors')})"
+                            f"; original positives={exp.get('original_positive_count')}, added positives={exp.get('added_positive_count')}, expanded positives={exp.get('expanded_positive_count')}{coord_text}"
                         )
                     else:
-                        lines.append(f"- 正样本扩充: 未触发(原因={exp.get('reason')}){coord_text}")
+                        lines.append(f"- Positive-sample expansion: not triggered (reason={exp.get('reason')}){coord_text}")
         lines.append('')
-        lines.append('## 选择集调参过程（数据科学专家智能体）')
-        lines.append('- 数据划分：先剔除 excluded=-1 的样本；再对有效样本进行 70/30 分层切分(训练集/留出集, random_state=42)。')
-        lines.append('- 模型：SOM(QE)。先在训练集上训练 SOM；再以量化误差(QE)作为异常/成矿倾向分数。')
+        lines.append('## Selection-And-Tuning Procedure (DataScienceExpertAgent)')
+        lines.append('- Data splitting: remove samples with excluded=-1 first, then perform a 70/30 split on effective samples (training/holdout, random_state=42) with stratification when possible.')
+        lines.append('- Model: SOM(QE). SOM is trained on the training subset, and quantization error (QE) is used as the anomaly/mineralization-tendency score.')
         calibration_enabled = True
         if isinstance(dataset_info, dict):
             calibration_enabled = bool(dataset_info.get("qe_probability_calibration", True))
         if calibration_enabled:
-            lines.append('- 概率输出：若训练集同时包含正负样本(0/1)，使用 QE->LogisticRegression 校准为概率；标签不参与SOM权重训练。')
+            lines.append('- Probability output: when the training partition contains both positive and negative samples (0/1), QE-to-LogisticRegression calibrates scores into probabilities; labels are not used to train SOM weights.')
         else:
-            lines.append('- 概率输出：关闭QE概率校准，输出基于QE的相对分数(0~1)用于排序。')
+            lines.append('- Probability output: QE probability calibration is disabled; relative QE scores (0-1) are returned for ranking.')
         lines.append('')
         best_name = model_results.get('best_model_name')
         best_name_display = self._display_model_name(best_name) if best_name else None
         best_score = model_results.get('best_model_score')
         best_metric = model_results.get('best_model_metric', 'roc_auc')
         if best_name:
-            lines.append('## 最佳模型')
-            lines.append(f'- 模型: {best_name_display}')
+            lines.append('## Best Model')
+            lines.append(f'- Model: {best_name_display}')
             if best_score is not None:
-                metric_name = '交叉验证ROC-AUC' if 'roc' in str(best_metric).lower() else '交叉验证得分'
+                metric_name = 'Cross-validation ROC-AUC' if 'roc' in str(best_metric).lower() else 'Cross-validation score'
                 lines.append(f'- {metric_name}: {best_score:.4f}')
             best_details = model_results.get(best_name)
             if isinstance(best_details, dict):
@@ -3399,10 +3399,10 @@ class DataScienceExpertAgent(BaseAgent):
                     best_params = tuning.get('best_params')
                     best_params_source = str(tuning.get("strategy") or "tuning")
                 if isinstance(best_params, dict) and best_params:
-                    lines.append(f"- 最优参数({best_params_source}): {best_params}")
+                    lines.append(f"- Best parameters ({best_params_source}): {best_params}")
                 if isinstance(tuning, dict) and tuning.get("best_cv_score") is not None:
                     try:
-                        lines.append(f"- 选择集得分(best_cv_score): {float(tuning.get('best_cv_score')):.4f}")
+                        lines.append(f"- Selection-stage score (best_cv_score): {float(tuning.get('best_cv_score')):.4f}")
                     except Exception:
                         pass
                 if isinstance(final_params, dict) and final_params:
@@ -3411,7 +3411,7 @@ class DataScienceExpertAgent(BaseAgent):
                         key_order = ["grid_m", "grid_n", "n_iter", "sigma", "lr", "calibrate", "decision_threshold", "random_state"]
                     picked = {k: final_params.get(k) for k in key_order if k in final_params}
                     if picked:
-                        lines.append(f"- 最终模型关键参数: {picked}")
+                        lines.append(f"- Final model key parameters: {picked}")
                 train_metrics = best_details.get('train_metrics') if isinstance(best_details.get('train_metrics'), dict) else {}
                 test_metrics = best_details.get('test_metrics') if isinstance(best_details.get('test_metrics'), dict) else {}
                 train_parts = []
@@ -3425,15 +3425,15 @@ class DataScienceExpertAgent(BaseAgent):
                 if train_metrics.get('balanced_accuracy') is not None:
                     train_parts.append(f"BalancedAcc={float(train_metrics.get('balanced_accuracy')):.4f}")
                 if train_metrics.get('precision_pos') is not None:
-                    train_parts.append(f"Precision(正类)={float(train_metrics.get('precision_pos')):.4f}")
+                    train_parts.append(f"Precision(positive)={float(train_metrics.get('precision_pos')):.4f}")
                 if train_metrics.get('recall_pos') is not None:
-                    train_parts.append(f"Recall(正类)={float(train_metrics.get('recall_pos')):.4f}")
+                    train_parts.append(f"Recall(positive)={float(train_metrics.get('recall_pos')):.4f}")
                 if train_metrics.get('f1_pos') is not None:
-                    train_parts.append(f"F1(正类)={float(train_metrics.get('f1_pos')):.4f}")
+                    train_parts.append(f"F1(positive)={float(train_metrics.get('f1_pos')):.4f}")
                 if train_metrics.get('kappa') is not None:
                     train_parts.append(f"Kappa={float(train_metrics.get('kappa')):.4f}")
                 if train_parts:
-                    lines.append(f"- 训练集指标：{'；'.join(train_parts)}")
+                    lines.append(f"- Training-set metrics: {'; '.join(train_parts)}")
                 if test_metrics.get('roc_auc') is not None:
                     test_parts.append(f"ROC-AUC={float(test_metrics.get('roc_auc')):.4f}")
                 if test_metrics.get('pr_auc') is not None:
@@ -3443,40 +3443,40 @@ class DataScienceExpertAgent(BaseAgent):
                 if test_metrics.get('balanced_accuracy') is not None:
                     test_parts.append(f"BalancedAcc={float(test_metrics.get('balanced_accuracy')):.4f}")
                 if test_metrics.get('precision_pos') is not None:
-                    test_parts.append(f"Precision(正类)={float(test_metrics.get('precision_pos')):.4f}")
+                    test_parts.append(f"Precision(positive)={float(test_metrics.get('precision_pos')):.4f}")
                 if test_metrics.get('recall_pos') is not None:
-                    test_parts.append(f"Recall(正类)={float(test_metrics.get('recall_pos')):.4f}")
+                    test_parts.append(f"Recall(positive)={float(test_metrics.get('recall_pos')):.4f}")
                 if test_metrics.get('f1_pos') is not None:
-                    test_parts.append(f"F1(正类)={float(test_metrics.get('f1_pos')):.4f}")
+                    test_parts.append(f"F1(positive)={float(test_metrics.get('f1_pos')):.4f}")
                 if test_metrics.get('kappa') is not None:
                     test_parts.append(f"Kappa={float(test_metrics.get('kappa')):.4f}")
                 if test_parts:
-                    lines.append(f"- {holdout_label}指标：{'；'.join(test_parts)}")
+                    lines.append(f"- {holdout_label} metrics: {'; '.join(test_parts)}")
                 train_cm = best_details.get('train_confusion_matrix')
                 if isinstance(train_cm, list) and len(train_cm) == 2 and all(isinstance(row, list) and len(row) == 2 for row in train_cm):
-                    lines.append(f"- 训练集混淆矩阵([[TN, FP],[FN, TP]]): {train_cm}")
+                    lines.append(f"- Training-set confusion matrix ([[TN, FP], [FN, TP]]): {train_cm}")
                 cm = best_details.get('confusion_matrix')
                 if isinstance(cm, list) and len(cm) == 2 and all(isinstance(row, list) and len(row) == 2 for row in cm):
-                    lines.append(f"- {holdout_label}混淆矩阵([[TN, FP],[FN, TP]]): {cm}")
+                    lines.append(f"- {holdout_label} confusion matrix ([[TN, FP], [FN, TP]]): {cm}")
                 predict_cm = best_details.get('predict_confusion_matrix')
                 if isinstance(predict_cm, list) and len(predict_cm) == 2 and all(isinstance(row, list) and len(row) == 2 for row in predict_cm):
-                    lines.append(f"- 预测集混淆矩阵([[TN, FP],[FN, TP]]): {predict_cm}")
+                    lines.append(f"- Prediction-set confusion matrix ([[TN, FP], [FN, TP]]): {predict_cm}")
                 artifacts = best_details.get("artifacts") if isinstance(best_details.get("artifacts"), dict) else {}
                 if artifacts:
                     lines.append("")
-                    lines.append("## 可视化产物")
-                    holdout_cm_label = "验证集混淆矩阵" if str(holdout_label) == "Val" else "测试集混淆矩阵"
+                    lines.append('## Visualization Artifacts')
+                    holdout_cm_label = 'Validation confusion matrix' if str(holdout_label) == "Val" else 'Test confusion matrix'
                     show_order = [
-                        ("roc_curve_path", "ROC 曲线"),
-                        ("predict_roc_curve_path", "预测集ROC 曲线"),
-                        ("train_confusion_matrix_path", "训练集混淆矩阵"),
+                        ("roc_curve_path", 'ROC curve'),
+                        ("predict_roc_curve_path", 'Prediction-set ROC curve'),
+                        ("train_confusion_matrix_path", 'Training-set confusion matrix'),
                         ("confusion_matrix_path", holdout_cm_label),
-                        ("predict_confusion_matrix_path", "预测集混淆矩阵"),
-                        ("score_hist_path", "预测得分分布"),
-                        ("fit_gap_path", "拟合情况(AUC)"),
-                        ("learning_curve_path", "学习曲线"),
-                        ("feature_importance_path", "特征重要性"),
-                        ("permutation_importance_path", "置换重要性"),
+                        ("predict_confusion_matrix_path", 'Prediction-set confusion matrix'),
+                        ("score_hist_path", 'Prediction-score distribution'),
+                        ("fit_gap_path", 'Fit gap (AUC)'),
+                        ("learning_curve_path", 'Learning curve'),
+                        ("feature_importance_path", 'Feature importance'),
+                        ("permutation_importance_path", 'Permutation importance'),
                     ]
                     for key, label in show_order:
                         p = artifacts.get(key)
@@ -3492,11 +3492,11 @@ class DataScienceExpertAgent(BaseAgent):
                     tuning_path = artifacts.get("tuning_cv_results_path")
                     if tuning_path:
                         rel = self._relpath_from_reports(str(tuning_path))
-                        lines.append(f"- 调参明细: {rel}")
+                        lines.append(f"- Tuning details: {rel}")
             top_imp = model_results.get('best_model_feature_importance')
             if isinstance(top_imp, list) and top_imp:
                 lines.append('')
-                lines.append('### 特征重要性（全部）')
+                lines.append('### Feature Importance (All)')
                 for item in top_imp:
                     if not isinstance(item, dict):
                         continue
@@ -3512,11 +3512,11 @@ class DataScienceExpertAgent(BaseAgent):
             if isinstance(fit_diag, dict):
                 status = fit_diag.get('status')
                 if status:
-                    lines.append(f'- 拟合诊断: {status}')
+                    lines.append(f'- Fit diagnosis: {status}')
                 recs = fit_diag.get('recommendations') or []
                 if recs:
-                    rec_text = '；'.join([str(r) for r in recs[:5]])
-                    lines.append(f'- 建议: {rec_text}')
+                    rec_text = '; '.join([str(r) for r in recs[:5]])
+                    lines.append(f'- Recommendations: {rec_text}')
             if isinstance(best_details, dict):
                 sec = best_details.get('secondary_tuning')
                 if isinstance(sec, dict) and sec.get('activated'):
@@ -3527,29 +3527,29 @@ class DataScienceExpertAgent(BaseAgent):
                     final_status = final.get('status')
                     status_text = ''
                     if init_status or final_status:
-                        status_text = f'（{init_status} -> {final_status}）'
-                    lines.append(f"- 迭代调参: {'已采用' if selected else '已尝试未采用'}{status_text}")
+                        status_text = f'({init_status} -> {final_status})'
+                    lines.append(f"- Iterative tuning: {'adopted' if selected else 'attempted but not adopted'}{status_text}")
                     if sec.get('best_cv_score') is not None:
                         try:
-                            lines.append(f"- 迭代调参Ref-AUC: {float(sec.get('best_cv_score')):.4f}")
+                            lines.append(f"- Iterative-tuning Ref-AUC: {float(sec.get('best_cv_score')):.4f}")
                         except Exception:
                             pass
                     best_params = sec.get('best_params')
                     if isinstance(best_params, dict) and best_params:
-                        lines.append(f"- 迭代调参参数: {best_params}")
+                        lines.append(f"- Iterative-tuning parameters: {best_params}")
                     reason = sec.get("selected_reason")
                     if reason:
-                        lines.append(f"- 迭代调参决策: {reason}")
+                        lines.append(f"- Iterative-tuning decision: {reason}")
                     tuning_path = sec.get("tuning_cv_results_path")
                     if tuning_path:
                         try:
                             rel = self._relpath_from_reports(str(tuning_path))
-                            lines.append(f"- 迭代调参明细: {rel}")
+                            lines.append(f"- Iterative-tuning details: {rel}")
                         except Exception:
                             pass
                     rounds = sec.get("rounds")
                     if isinstance(rounds, list) and rounds:
-                        lines.append(f"- 迭代调参轮次: {len(rounds)}")
+                        lines.append(f"- Iterative-tuning rounds: {len(rounds)}")
                         for r in rounds[:5]:
                             if not isinstance(r, dict):
                                 continue
@@ -3587,7 +3587,7 @@ class DataScienceExpertAgent(BaseAgent):
             lines.append('')
         candidates = [k for k in model_results.keys() if k in self.models]
         if candidates:
-            lines.append('## 各模型指标')
+            lines.append('## Metrics By Model')
             for name in candidates:
                 res = model_results.get(name)
                 lines.append(f"### {self._display_model_name(name)}")
@@ -3595,51 +3595,51 @@ class DataScienceExpertAgent(BaseAgent):
                     err = ''
                     if isinstance(res, dict):
                         err = res.get('error') or res.get('message') or ''
-                    lines.append(f'- 训练失败: {err}'.strip())
+                    lines.append(f'- Training failed: {err}'.strip())
                     lines.append('')
                     continue
                 tuning = res.get("tuning") if isinstance(res.get("tuning"), dict) else {}
                 sec = res.get("secondary_tuning") if isinstance(res.get("secondary_tuning"), dict) else {}
                 if isinstance(sec, dict) and sec.get("activated") and sec.get("selected") and isinstance(sec.get("best_params"), dict) and sec.get("best_params"):
-                    lines.append(f"- 最优参数(迭代调参): {sec.get('best_params')}")
+                    lines.append(f"- Best parameters (iterative tuning): {sec.get('best_params')}")
                 elif isinstance(tuning, dict) and isinstance(tuning.get("best_params"), dict) and tuning.get("best_params"):
                     strategy = str(tuning.get("strategy") or "tuning")
-                    lines.append(f"- 最优参数({strategy}): {tuning.get('best_params')}")
+                    lines.append(f"- Best parameters ({strategy}): {tuning.get('best_params')}")
                 artifacts = res.get("artifacts") if isinstance(res.get("artifacts"), dict) else {}
                 tuning_path = artifacts.get("tuning_cv_results_path") if isinstance(artifacts, dict) else None
                 if tuning_path:
                     rel = self._relpath_from_reports(str(tuning_path))
-                    lines.append(f"- 调参明细: {rel}")
+                    lines.append(f"- Tuning details: {rel}")
                 if res.get('mean_cv_score') is not None:
-                    lines.append(f"- 交叉验证ROC-AUC(均值): {float(res.get('mean_cv_score')):.4f}")
+                    lines.append(f"- Cross-validation ROC-AUC (mean): {float(res.get('mean_cv_score')):.4f}")
                 train_metrics = res.get('train_metrics') if isinstance(res.get('train_metrics'), dict) else {}
                 train_roc = train_metrics.get('roc_auc')
                 if train_roc is not None:
-                    lines.append(f"- 训练集ROC-AUC: {float(train_roc):.4f}")
+                    lines.append(f"- Training-set ROC-AUC: {float(train_roc):.4f}")
                 train_pr = train_metrics.get('pr_auc')
                 if train_pr is not None:
-                    lines.append(f"- 训练集PR-AUC: {float(train_pr):.4f}")
+                    lines.append(f"- Training-set PR-AUC: {float(train_pr):.4f}")
                 train_acc = train_metrics.get('accuracy')
                 if train_acc is not None:
-                    lines.append(f"- 训练集Accuracy: {float(train_acc):.4f}")
+                    lines.append(f"- Training-set Accuracy: {float(train_acc):.4f}")
                 train_bal = train_metrics.get('balanced_accuracy')
                 if train_bal is not None:
-                    lines.append(f"- 训练集Balanced-Accuracy: {float(train_bal):.4f}")
+                    lines.append(f"- Training-set Balanced-Accuracy: {float(train_bal):.4f}")
                 train_prec = train_metrics.get('precision_pos')
                 if train_prec is not None:
-                    lines.append(f"- 训练集Precision(正类): {float(train_prec):.4f}")
+                    lines.append(f"- Training-set Precision(positive): {float(train_prec):.4f}")
                 train_rec = train_metrics.get('recall_pos')
                 if train_rec is not None:
-                    lines.append(f"- 训练集Recall(正类): {float(train_rec):.4f}")
+                    lines.append(f"- Training-set Recall(positive): {float(train_rec):.4f}")
                 train_f1p = train_metrics.get('f1_pos')
                 if train_f1p is not None:
-                    lines.append(f"- 训练集F1(正类): {float(train_f1p):.4f}")
+                    lines.append(f"- Training-set F1(positive): {float(train_f1p):.4f}")
                 train_kap = train_metrics.get('kappa')
                 if train_kap is not None:
-                    lines.append(f"- 训练集Kappa: {float(train_kap):.4f}")
+                    lines.append(f"- Training-set Kappa: {float(train_kap):.4f}")
                 train_cm = res.get('train_confusion_matrix')
                 if isinstance(train_cm, list) and len(train_cm) == 2 and all(isinstance(row, list) and len(row) == 2 for row in train_cm):
-                    lines.append(f"- 训练集混淆矩阵([[TN, FP],[FN, TP]]): {train_cm}")
+                    lines.append(f"- Training-set confusion matrix ([[TN, FP], [FN, TP]]): {train_cm}")
                 metrics = res.get('test_metrics') if isinstance(res.get('test_metrics'), dict) else {}
                 roc = metrics.get('roc_auc')
                 if roc is not None:
@@ -3655,19 +3655,19 @@ class DataScienceExpertAgent(BaseAgent):
                     lines.append(f"- {holdout_label}Balanced-Accuracy: {float(bal):.4f}")
                 prec = metrics.get('precision_pos')
                 if prec is not None:
-                    lines.append(f"- {holdout_label}Precision(正类): {float(prec):.4f}")
+                    lines.append(f"- {holdout_label} Precision(positive): {float(prec):.4f}")
                 rec = metrics.get('recall_pos')
                 if rec is not None:
-                    lines.append(f"- {holdout_label}Recall(正类): {float(rec):.4f}")
+                    lines.append(f"- {holdout_label} Recall(positive): {float(rec):.4f}")
                 f1p = metrics.get('f1_pos')
                 if f1p is not None:
-                    lines.append(f"- {holdout_label}F1(正类): {float(f1p):.4f}")
+                    lines.append(f"- {holdout_label} F1(positive): {float(f1p):.4f}")
                 kap = metrics.get('kappa')
                 if kap is not None:
                     lines.append(f"- {holdout_label}Kappa: {float(kap):.4f}")
                 cm = res.get('confusion_matrix')
                 if isinstance(cm, list) and len(cm) == 2 and all(isinstance(row, list) and len(row) == 2 for row in cm):
-                    lines.append(f"- 混淆矩阵([[TN, FP],[FN, TP]]): {cm}")
+                    lines.append(f"- Confusion matrix ([[TN, FP], [FN, TP]]): {cm}")
                 sec = res.get('secondary_tuning')
                 if isinstance(sec, dict) and sec.get('activated'):
                     selected = bool(sec.get('selected'))
@@ -3677,18 +3677,18 @@ class DataScienceExpertAgent(BaseAgent):
                     final_status = final.get('status')
                     status_text = ''
                     if init_status or final_status:
-                        status_text = f'（{init_status} -> {final_status}）'
-                    lines.append(f"- 迭代调参: {'已采用' if selected else '已尝试未采用'}{status_text}")
+                        status_text = f'({init_status} -> {final_status})'
+                    lines.append(f"- Iterative tuning: {'adopted' if selected else 'attempted but not adopted'}{status_text}")
                     if sec.get('best_cv_score') is not None:
                         try:
-                            lines.append(f"- 迭代调参Ref-AUC: {float(sec.get('best_cv_score')):.4f}")
+                            lines.append(f"- Iterative-tuning Ref-AUC: {float(sec.get('best_cv_score')):.4f}")
                         except Exception:
                             pass
                     tuning_path = sec.get("tuning_cv_results_path")
                     if tuning_path:
                         try:
                             rel = self._relpath_from_reports(str(tuning_path))
-                            lines.append(f"- 迭代调参明细: {rel}")
+                            lines.append(f"- Iterative-tuning details: {rel}")
                         except Exception:
                             pass
                 lines.append('')
@@ -3704,7 +3704,7 @@ class DataScienceExpertAgent(BaseAgent):
             confidence = np.max(best_model.predict_proba(X), axis=1)
         else:
             confidence = np.ones_like(predictions) * 0.5
-        self.logger.info(f'对全部{len(X)}个样本进行预测')
+        self.logger.info(f'Running prediction for all {len(X)} samples')
         high_potential_threshold = np.percentile(probabilities, 90)
         high_potential_indices = np.where(probabilities >= high_potential_threshold)[0].tolist()
         feature_importance = None
@@ -3714,18 +3714,18 @@ class DataScienceExpertAgent(BaseAgent):
             feature_importance = [{'feature': str(selected_features[i]), 'importance': float(importances[i])} for i in indices]
         return {'probabilities': probabilities.tolist(), 'predictions': predictions.tolist(), 'confidence': confidence.tolist(), 'high_potential_threshold': float(high_potential_threshold), 'high_potential_indices': high_potential_indices, 'high_potential_count': len(high_potential_indices), 'feature_importance': feature_importance}
     def _generate_summary(self, model_results: Dict, predictions: Dict) -> str:
-        summary = '预测模型分析结果：\n'
+        summary = 'Predictive-model analysis results:\n'
         if 'best_model_name' in model_results:
-            holdout_label = "测试集"
+            holdout_label = 'Test set'
             split = model_results.get("train_test_split")
             if isinstance(split, dict):
                 role = str(split.get("holdout_role") or "").strip().lower()
                 if role == "validation":
-                    holdout_label = "验证集"
+                    holdout_label = 'Validation set'
             best_model_name = model_results['best_model_name']
             best_model_display = self._display_model_name(best_model_name) if best_model_name else None
             metric = model_results.get('best_model_metric', 'roc_auc')
-            metric_name = '交叉验证ROC-AUC' if 'roc' in str(metric).lower() else '交叉验证得分'
+            metric_name = 'Cross-validation ROC-AUC' if 'roc' in str(metric).lower() else 'Cross-validation score'
             best_details = model_results.get(best_model_name)
             best_score = None
             if isinstance(best_details, dict):
@@ -3734,9 +3734,9 @@ class DataScienceExpertAgent(BaseAgent):
             if best_score is None:
                 best_score = model_results.get('best_model_score')
             if best_score is None:
-                summary += f'- 最佳模型：{best_model_display or best_model_name}，{metric_name}：NA\n'
+                summary += f'- Best model: {best_model_display or best_model_name}, {metric_name}: NA\n'
             else:
-                summary += f'- 最佳模型：{best_model_display or best_model_name}，{metric_name}：{float(best_score):.4f}\n'
+                summary += f'- Best model: {best_model_display or best_model_name}, {metric_name}: {float(best_score):.4f}\n'
             if isinstance(best_details, dict):
                 metrics = best_details.get('test_metrics') if isinstance(best_details.get('test_metrics'), dict) else {}
                 roc = metrics.get('roc_auc')
@@ -3757,32 +3757,32 @@ class DataScienceExpertAgent(BaseAgent):
                 if bal is not None:
                     parts.append(f'BalancedAcc={float(bal):.4f}')
                 if prec is not None:
-                    parts.append(f'Precision(正类)={float(prec):.4f}')
+                    parts.append(f'Precision(positive)={float(prec):.4f}')
                 if rec is not None:
-                    parts.append(f'Recall(正类)={float(rec):.4f}')
+                    parts.append(f'Recall(positive)={float(rec):.4f}')
                 if f1p is not None:
-                    parts.append(f'F1(正类)={float(f1p):.4f}')
+                    parts.append(f'F1(positive)={float(f1p):.4f}')
                 if kap is not None:
                     parts.append(f'Kappa={float(kap):.4f}')
                 if parts:
-                    summary += f"- {holdout_label}指标：{'；'.join(parts)}\n"
+                    summary += f"- {holdout_label} metrics: {'; '.join(parts)}\n"
                 train_cm = best_details.get('train_confusion_matrix')
                 if isinstance(train_cm, list) and len(train_cm) == 2 and all(isinstance(row, list) and len(row) == 2 for row in train_cm):
-                    summary += f'- 训练集混淆矩阵([[TN, FP],[FN, TP]]): {train_cm}\n'
+                    summary += f'- Training-set confusion matrix ([[TN, FP], [FN, TP]]): {train_cm}\n'
                 cm = best_details.get('confusion_matrix')
                 if isinstance(cm, list) and len(cm) == 2 and all(isinstance(row, list) and len(row) == 2 for row in cm):
-                    summary += f'- {holdout_label}混淆矩阵([[TN, FP],[FN, TP]]): {cm}\n'
+                    summary += f'- {holdout_label} confusion matrix ([[TN, FP], [FN, TP]]): {cm}\n'
                 predict_cm = best_details.get('predict_confusion_matrix')
                 if isinstance(predict_cm, list) and len(predict_cm) == 2 and all(isinstance(row, list) and len(row) == 2 for row in predict_cm):
-                    summary += f'- 预测集混淆矩阵([[TN, FP],[FN, TP]]): {predict_cm}\n'
+                    summary += f'- Prediction-set confusion matrix ([[TN, FP], [FN, TP]]): {predict_cm}\n'
             fit_diag = model_results.get('best_model_fit_diagnosis')
             if isinstance(fit_diag, dict) and fit_diag.get('status'):
                 status = fit_diag.get('status')
-                summary += f'- 拟合诊断：{status}\n'
+                summary += f'- Fit diagnosis: {status}\n'
                 recs = fit_diag.get('recommendations') or []
                 if recs:
-                    rec_text = '；'.join([str(r) for r in recs[:3]])
-                    summary += f'- 调参建议：{rec_text}\n'
+                    rec_text = '; '.join([str(r) for r in recs[:3]])
+                    summary += f'- Tuning recommendations: {rec_text}\n'
             tuning = None
             if best_model_name in model_results and isinstance(model_results.get(best_model_name), dict):
                 tuning = model_results[best_model_name].get('tuning')
@@ -3790,17 +3790,17 @@ class DataScienceExpertAgent(BaseAgent):
             if best_model_name in model_results and isinstance(model_results.get(best_model_name), dict):
                 sec = model_results[best_model_name].get('secondary_tuning')
             if isinstance(sec, dict) and sec.get('activated') and sec.get('selected') and isinstance(sec.get('best_params'), dict) and sec.get('best_params'):
-                summary += f"- 最优参数(迭代调参)：{sec.get('best_params')}\n"
+                summary += f"- Best parameters (iterative tuning): {sec.get('best_params')}\n"
             elif isinstance(tuning, dict) and tuning.get('best_params'):
-                summary += f"- 最优参数：{tuning.get('best_params')}\n"
+                summary += f"- Best parameters: {tuning.get('best_params')}\n"
         else:
-            summary += '- 未找到合适的最佳模型\n'
+            summary += '- No suitable best model was found\n'
         high_potential_count = predictions.get('high_potential_count', 0)
         total_samples = len(predictions.get('predictions', []))
         if total_samples > 0:
-            summary += f'- 预测出 {high_potential_count} 个高潜力区域（占总样本的 {high_potential_count / total_samples:.2%}）\n'
+            summary += f'- Predicted {high_potential_count} high-potential areas ({high_potential_count / total_samples:.2%} of all samples)\n'
         else:
-            summary += '- 无有效预测样本\n'
+            summary += '- No valid prediction samples are available\n'
         feature_importance = predictions.get('feature_importance', {})
         if feature_importance:
             if isinstance(feature_importance, dict):
@@ -3811,7 +3811,7 @@ class DataScienceExpertAgent(BaseAgent):
                 top_features_str = ', '.join(top_features)
             else:
                 top_features_str = ', '.join([f"{item['feature']}({item['importance']:.3f})" for item in feature_importance])
-            summary += f'- 最重要的预测特征：{top_features_str}\n'
+            summary += f'- Most important predictive features: {top_features_str}\n'
         return summary
 
 
@@ -3820,21 +3820,21 @@ OUTPUT_DIR = os.path.join(".", "output", "qe")
 PLOT_TITLE = "Geochemical Anomaly Distribution Map"
 
 
-def ensure_2d_array(arr, var_name="数据"):
+def ensure_2d_array(arr, var_name='array'):
     if arr is None:
-        raise ValueError(f"{var_name}不能为空")
+        raise ValueError(f"{var_name} cannot be empty")
     if not isinstance(arr, np.ndarray):
         arr = np.array(arr)
-        logger.debug(f"{var_name}已转换为numpy数组，形状: {arr.shape}")
+        logger.debug(f"{var_name} converted to a NumPy array with shape: {arr.shape}")
     if arr.ndim == 1:
         new_shape = (len(arr), 1)
         arr_2d = arr.reshape(new_shape)
-        logger.warning(f"{var_name}是一维数组，已转换为二维形状: {new_shape}")
+        logger.warning(f"{var_name} is one-dimensional and has been reshaped to 2D: {new_shape}")
         return arr_2d
     if arr.ndim == 2:
-        logger.debug(f"{var_name}是二维数组，形状: {arr.shape}")
+        logger.debug(f"{var_name} is already 2D with shape: {arr.shape}")
         return arr
-    raise ValueError(f"{var_name}维度错误，需要1或2维，实际为{arr.ndim}维")
+    raise ValueError(f"Invalid dimensions for {var_name}: expected 1 or 2, got {arr.ndim}")
 
 
 def get_custom_cmap():
@@ -3862,7 +3862,7 @@ def get_enhanced_cmap():
 
 
 def apply_clr_to_all_elements(X_processed, elements, epsilon=1e-6):
-    X_processed = ensure_2d_array(X_processed, "X_processed (全元素CLR处理)")
+    X_processed = ensure_2d_array(X_processed, 'X_processed (all-element CLR)')
     safe_values = np.where(X_processed > 0, X_processed, epsilon).astype(np.float64)
     log_values = np.log(safe_values)
     geom_log_mean = np.mean(log_values, axis=1, keepdims=True)
@@ -3871,7 +3871,7 @@ def apply_clr_to_all_elements(X_processed, elements, epsilon=1e-6):
 
 
 def apply_log10_to_all_elements(X_processed, elements, epsilon=1e-6):
-    X_processed = ensure_2d_array(X_processed, "X_processed (全元素log10处理)")
+    X_processed = ensure_2d_array(X_processed, 'X_processed (all-element log10)')
     safe_values = np.where(X_processed > 0, X_processed, epsilon).astype(np.float64)
     return np.log10(safe_values)
 
@@ -3888,21 +3888,18 @@ def load_geochem_data_from_df(
 ):
     os.makedirs(output_dir, exist_ok=True)
     data = df.copy()
-    print(f"成功加载数据，样本数: {len(data)}")
     missing = [e for e in elements if e not in data.columns]
     if missing:
-        raise ValueError(f"缺失元素列: {missing}")
+        raise ValueError(f"Missing element columns: {missing}")
     X_raw = data[elements].values.copy()
-    X_raw = ensure_2d_array(X_raw, "原始数据X_raw")
+    X_raw = ensure_2d_array(X_raw, 'raw data X_raw')
     X_processed = X_raw.copy()
     if log_transform:
         mode = str(log_mode or "log10").strip().lower()
         if mode == "clr":
             X_processed = apply_clr_to_all_elements(X_processed, elements, epsilon=1e-6)
-            print("已应用对全部筛选元素的无条件CLR变换")
         else:
             X_processed = apply_log10_to_all_elements(X_processed, elements, epsilon=1e-6)
-            print("已应用对全部筛选元素的无条件log10变换")
         if save_preprocessing:
             np.save(f"{output_dir}/log_epsilon.npy", np.array([1e-6]))
     X_processed = np.nan_to_num(X_processed, nan=np.nanmedian(X_processed))
@@ -3910,9 +3907,9 @@ def load_geochem_data_from_df(
     if normalize:
         scaler = MinMaxScaler(feature_range=(0, 1))
         X_scaled = scaler.fit_transform(X_processed)
-        X_scaled = ensure_2d_array(X_scaled, "归一化后X_scaled")
+        X_scaled = ensure_2d_array(X_scaled, 'normalized X_scaled')
     else:
-        X_scaled = ensure_2d_array(X_processed, "SOM输入X_scaled(复用预处理结果)")
+        X_scaled = ensure_2d_array(X_processed, 'SOM input X_scaled (reusing preprocessing results)')
     if save_preprocessing:
         try:
             if scaler is not None:
@@ -3920,20 +3917,18 @@ def load_geochem_data_from_df(
         except Exception:
             pass
         try:
-            elem_df = pd.DataFrame({"元素名称": elements})
+            elem_df = pd.DataFrame({'Element Name': elements})
             _localize_dataframe_headers(elem_df).to_csv(f"{output_dir}/main_elements_list.csv", index=False, encoding="utf-8-sig")
         except Exception:
             pass
-    print(f"load_geochem_data_from_df输出的X_scaled形状：{X_scaled.shape}")
     return X_scaled, X_raw, data, scaler, elements
 
 
 def train_som(X, map_size=(22, 22), sigma=5.0, lr=0.5, iterations=1000):
     if MiniSom is None:
-        raise ModuleNotFoundError("缺少依赖minisom，请先安装: python -m pip install minisom")
-    X = ensure_2d_array(X, "SOM训练数据X")
+        raise ModuleNotFoundError('Missing dependency `minisom`. Please install it first: python -m pip install minisom')
+    X = ensure_2d_array(X, 'SOM training data X')
     n_features = X.shape[1]
-    print(f"训练SOM {map_size[0]}x{map_size[1]}，输入特征维度: {n_features}，迭代{iterations}次...")
     som = MiniSom(
         map_size[0],
         map_size[1],
@@ -3945,13 +3940,13 @@ def train_som(X, map_size=(22, 22), sigma=5.0, lr=0.5, iterations=1000):
         neighborhood_function='gaussian'
     )
     if X.ndim != 2:
-        raise ValueError(f"SOM训练数据必须是二维数组，实际维度: {X.ndim}")
+        raise ValueError(f"SOM training data must be a two-dimensional array; actual dimensions: {X.ndim}")
     som.train_random(X, iterations, verbose=True)
     return som
 
 
 def calculate_topographic_error(som, X):
-    X = ensure_2d_array(X, "拓扑误差计算数据X")
+    X = ensure_2d_array(X, 'topographic-error input X')
     topo_error = 0.0
     n_samples = X.shape[0]
     map_shape = som.get_weights().shape[:2]
@@ -3988,7 +3983,6 @@ def calculate_topographic_error(som, X):
             if bmu2 not in valid_neighbors:
                 topo_error += 1.0
         except Exception as e:
-            print(f"样本处理错误: {str(e)}")
             continue
     return topo_error / n_samples
 
@@ -4106,11 +4100,10 @@ def plot_u_matrix(som, u_matrix, output_dir="Sample_Cluster_Results"):
     output_path = os.path.join(output_dir, "U_Matrix_Enhanced.png")
     _save_fixed_canvas_figure(fig, output_path)
     plt.close(fig)
-    print(f"已保存SOM U矩阵图: {output_path}")
 
 
 def apply_kmeans_to_samples(som, X, sample_ids, n_clusters=5, verbose=True):
-    X = ensure_2d_array(X, "K-means输入数据X")
+    X = ensure_2d_array(X, 'K-means input X')
     bmus = np.array([som.winner(x) for x in X])
     weights = som.get_weights().reshape(-1, som.get_weights().shape[2])
     kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init='auto')
@@ -4125,29 +4118,18 @@ def apply_kmeans_to_samples(som, X, sample_ids, n_clusters=5, verbose=True):
         sil_score = silhouette_score(sample_weights, sample_labels)
     except Exception:
         sil_score = float('nan')
-        print("警告: 无法计算轮廓系数")
     try:
         ch_score = calinski_harabasz_score(sample_weights, sample_labels)
     except Exception:
         ch_score = float('nan')
-        print("警告: 无法计算Calinski-Harabasz指数")
     try:
         db_score = davies_bouldin_score(sample_weights, sample_labels)
     except Exception:
         db_score = float('nan')
-        print("警告: 无法计算Davies-Bouldin指数")
     try:
         inertia = kmeans.inertia_
     except Exception:
         inertia = float('nan')
-    if bool(verbose):
-        print("\n聚类评估指标:")
-        print(f"  - 轮廓系数(Silhouette Score): {sil_score:.4f} (值越接近1越好)")
-        print(f"  - Calinski-Harabasz指数: {ch_score:.2f} (值越高越好)")
-        print(f"  - Davies-Bouldin指数: {db_score:.4f} (值越接近0越好)")
-        print("\n样本聚类结果:")
-        for cluster, samples in sorted(sample_clusters.items()):
-            print(f"聚类 {cluster}: 共{len(samples)}个样本")
     return grid_labels, sample_labels, sample_clusters, bmus, {
         'silhouette': sil_score,
         'calinski_harabasz': ch_score,
@@ -4158,9 +4140,8 @@ def apply_kmeans_to_samples(som, X, sample_ids, n_clusters=5, verbose=True):
 
 def optimize_som_parameters(X, sample_ids, map_size, param_grid=None, output_dir=None):
     if MiniSom is None:
-        raise ModuleNotFoundError("缺少依赖minisom，请先安装: python -m pip install minisom")
-    X = ensure_2d_array(X, "参数优化输入数据X")
-    print(f"参数寻优 - 输入数据形状: {X.shape}")
+        raise ModuleNotFoundError('Missing dependency `minisom`. Please install it first: python -m pip install minisom')
+    X = ensure_2d_array(X, 'parameter-tuning input X')
     grid = param_grid if isinstance(param_grid, dict) else {}
     sigma_list = grid.get("sigma")
     lr_list = grid.get("lr")
@@ -4193,7 +4174,6 @@ def optimize_som_parameters(X, sample_ids, map_size, param_grid=None, output_dir
         qe_weight, te_weight = 0.5, 0.5
     seed = 42
     X_tune = X
-    print(f"参数寻优 - 使用全量样本调参: {X_tune.shape}")
     if not isinstance(iters_list, (list, tuple)) or not iters_list:
         n_tune = int(X_tune.shape[0])
         iters_list = _default_iters(n_tune)
@@ -4240,15 +4220,12 @@ def optimize_som_parameters(X, sample_ids, map_size, param_grid=None, output_dir
 
     stage1 = list(product(sigma_list, lr_list, iters_list))
     all_results = []
-    print(f"参数搜索：计算参数组QE/TE（共{len(stage1)}组；seed={int(seed)}；权重: QE={qe_weight}, TE={te_weight}）...")
     for i, (sigma, lr, iters) in enumerate(stage1):
         try:
             qe, te = _eval_combo(sigma=float(sigma), lr=float(lr), iters=int(iters))
             all_results.append({"sigma": float(sigma), "lr": float(lr), "iters": int(iters), "qe": qe, "te": te, "stage": 1})
-            print(f"参数组{i + 1}/{len(stage1)}: sigma={sigma}, lr={lr}, iters={iters}, QE={qe:.6f}, TE={te:.4f}")
         except Exception as e:
             all_results.append({"sigma": float(sigma), "lr": float(lr), "iters": int(iters), "qe": float("nan"), "te": float("nan"), "stage": 1, "error": str(e)})
-            print(f"参数组{i + 1}计算出错: {str(e)}, 跳过该组参数")
 
     def _valid_mask_from_results(results: list[dict]) -> np.ndarray:
         qe = np.asarray([r.get("qe") for r in results], dtype=float)
@@ -4257,7 +4234,7 @@ def optimize_som_parameters(X, sample_ids, map_size, param_grid=None, output_dir
 
     valid_mask = _valid_mask_from_results(all_results)
     if not bool(np.any(valid_mask)):
-        raise ValueError("所有参数组合均无效，无法进行参数优化")
+        raise ValueError('All parameter combinations are invalid; parameter optimization cannot continue')
     qe_valid = np.asarray([r.get("qe") for r in all_results], dtype=float)[valid_mask]
     te_valid = np.asarray([r.get("te") for r in all_results], dtype=float)[valid_mask]
     score_valid = _normalize_scores(qe_valid, te_valid)
@@ -4367,14 +4344,8 @@ def optimize_som_parameters(X, sample_ids, map_size, param_grid=None, output_dir
                 "tuning_scatter_plot": os.path.abspath(tune_scatter_path) if os.path.exists(tune_scatter_path) else "",
                 "tuning_rank_plot": os.path.abspath(tune_rank_path) if os.path.exists(tune_rank_path) else "",
             }
-            print(f"参数搜索结果表已保存: {tune_csv_path}")
-            print(f"参数搜索结果JSON已保存: {tune_json_path}")
-            if tuning_artifacts.get("tuning_scatter_plot"):
-                print(f"参数搜索散点图已保存: {tuning_artifacts['tuning_scatter_plot']}")
-            if tuning_artifacts.get("tuning_rank_plot"):
-                print(f"参数搜索Top组合图已保存: {tuning_artifacts['tuning_rank_plot']}")
         except Exception as e:
-            print(f"参数搜索可视化保存失败: {e}")
+            pass
     final_iters = grid.get("final_iterations")
     if final_iters is None:
         n_full = int(X.shape[0])
@@ -4389,9 +4360,6 @@ def optimize_som_parameters(X, sample_ids, map_size, param_grid=None, output_dir
         final_iters = int(min(200000, max(20000, 2 * n_full)))
     best_sigma = float(best["sigma"])
     best_lr = float(best["lr"])
-    print("\n参数寻优完成（调参阶段）！")
-    print(f"最优调参结果: sigma={best_sigma}, lr={best_lr}, iters(tune)={int(best['iters'])}, QE={float(best['qe']):.6f}, TE={float(best['te']):.4f}")
-    print(f"将使用全量数据重训一次SOM: iters(full)={int(final_iters)}")
     best_som = MiniSom(
         map_size[0],
         map_size[1],
@@ -4423,7 +4391,6 @@ def optimize_som_parameters(X, sample_ids, map_size, param_grid=None, output_dir
         "tuning_artifacts": tuning_artifacts,
     }
     if best_som is None:
-        print("\n警告：所有参数组合训练失败，使用默认参数兜底")
         default_sigma = 9.0
         default_lr = 0.4
         default_iters = int(min(200000, max(20000, 2 * len(X))))
@@ -4446,11 +4413,8 @@ def optimize_som_parameters(X, sample_ids, map_size, param_grid=None, output_dir
             'best_qe': default_qe,
             'best_te': default_te,
             'best_comprehensive_score': np.nan,
-            'note': '使用默认参数（所有候选参数组失败）'
+            'note': 'Default parameters were used because all candidate parameter groups failed'
         }
-        print(f"默认参数QE: {default_qe:.6f}, TE: {default_te:.4f}")
-    print("\n参数寻优完成！")
-    print(f"最优参数: {best_params}")
     return best_som, best_params
 
 
@@ -4466,7 +4430,7 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
         if 2 <= k_int <= max_k:
             k_values.append(k_int)
     if not k_values:
-        raise ValueError(f"可用聚类数范围为空: map_size={rows}×{cols}, max_k={max_k}")
+        raise ValueError(f"No valid clustering-number range is available: map_size={rows}x{cols}, max_k={max_k}")
     k_range = k_values
     inertias = []
     sil_scores = []
@@ -4474,10 +4438,6 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
     ch_scores = []
     for k in k_range:
         _, _, _, _, metrics = apply_kmeans_to_samples(som, X, sample_ids, n_clusters=k, verbose=False)
-        print(
-            f"k={k} | Sil={float(metrics['silhouette']):.4f} | "
-            f"CH={float(metrics['calinski_harabasz']):.2f} | DB={float(metrics['davies_bouldin']):.4f}"
-        )
         inertias.append(metrics['inertia'])
         sil_scores.append(metrics['silhouette'])
         db_scores.append(metrics['davies_bouldin'])
@@ -4510,7 +4470,7 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
     ax2.grid(True)
     plt.tight_layout()
     os.makedirs(output_dir, exist_ok=True)
-    plt.savefig(os.path.join(output_dir, "聚类数选择参考图.png"), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(output_dir, 'cluster_count_selection_reference.png'), dpi=300, bbox_inches='tight')
     plt.close(fig)
     fig_sil, ax_sil = plt.subplots(figsize=(6, 4), dpi=300)
     ax_sil.plot(k_range, sil_scores, 'o-', color='green')
@@ -4519,7 +4479,7 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
     ax_sil.set_title('Silhouette Score')
     ax_sil.grid(True)
     fig_sil.tight_layout()
-    fig_sil.savefig(os.path.join(output_dir, "轮廓系数参考图.png"), dpi=300, bbox_inches='tight')
+    fig_sil.savefig(os.path.join(output_dir, 'silhouette_reference.png'), dpi=300, bbox_inches='tight')
     plt.close(fig_sil)
     fig_db, ax_db = plt.subplots(figsize=(6, 4), dpi=300)
     ax_db.plot(k_range, db_scores, 'o-', color='orange')
@@ -4528,7 +4488,7 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
     ax_db.set_title('Davies-Bouldin Index')
     ax_db.grid(True)
     fig_db.tight_layout()
-    fig_db.savefig(os.path.join(output_dir, "Davies-Bouldin参考图.png"), dpi=300, bbox_inches='tight')
+    fig_db.savefig(os.path.join(output_dir, 'davies_bouldin_reference.png'), dpi=300, bbox_inches='tight')
     plt.close(fig_db)
     fig_ch, ax_ch = plt.subplots(figsize=(6, 4), dpi=300)
     ax_ch.plot(k_range, ch_scores, 'o-', color='teal')
@@ -4537,17 +4497,10 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
     ax_ch.set_title('Calinski-Harabasz Index')
     ax_ch.grid(True)
     fig_ch.tight_layout()
-    fig_ch.savefig(os.path.join(output_dir, "Calinski-Harabasz参考图.png"), dpi=300, bbox_inches='tight')
+    fig_ch.savefig(os.path.join(output_dir, 'calinski_harabasz_reference.png'), dpi=300, bbox_inches='tight')
     plt.close(fig_ch)
-    print("\n" + "=" * 60)
-    print("聚类数评估指标汇总（供手动选择参考）：")
-    print("-" * 60)
-    print(f"{'k值':<5} | {'惯性值(越低越好)':<20} | {'惯性下降比kd':<15} | {'轮廓系数(越接近1越好)':<25} | {'DB指数(越小越好)':<20}")
-    print("-" * 60)
     for i, k in enumerate(k_range):
         kd_text = f"{float(drop_rates[i]):.4f}" if i > 0 and np.isfinite(drop_rates[i]) else "-"
-        print(f"{k:<5} | {inertias[i]:<20.4f} | {kd_text:<15} | {sil_scores[i]:<25.4f} | {db_scores[i]:<20.4f}")
-    print("=" * 60)
     inertia_k = elbow_k
     if inertia_k is None:
         finite_drop_pairs = [
@@ -4578,12 +4531,6 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
         if v is not None
     ]
     auto_final_k = int(min(metric_candidates)) if metric_candidates else None
-    print("各指标建议的k值:")
-    print(f"  - Inertia/kd: {metric_k['inertia']}")
-    print(f"  - Silhouette: {metric_k['silhouette']}")
-    print(f"  - Davies-Bouldin: {metric_k['davies_bouldin']}")
-    print(f"  - Calinski-Harabasz: {metric_k['calinski_harabasz']}")
-    print(f"按推荐k最小值规则得到自动聚类数: {auto_final_k}")
     metric_rows = [
         {"metric": "inertia_kd", "recommended_k": metric_k["inertia"]},
         {"metric": "silhouette", "recommended_k": metric_k["silhouette"]},
@@ -4591,9 +4538,9 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
         {"metric": "calinski_harabasz", "recommended_k": metric_k["calinski_harabasz"]},
         {"metric": "auto_final_k_min_recommended", "recommended_k": auto_final_k},
     ]
-    metric_k_csv_path = os.path.join(output_dir, "聚类数指标推荐k.csv")
+    metric_k_csv_path = os.path.join(output_dir, 'cluster_count_metric_recommendations.csv')
     pd.DataFrame(metric_rows).to_csv(metric_k_csv_path, index=False, encoding="utf-8-sig")
-    metric_k_json_path = os.path.join(output_dir, "聚类数指标推荐k.json")
+    metric_k_json_path = os.path.join(output_dir, 'cluster_count_metric_recommendations.json')
     with open(metric_k_json_path, "w", encoding="utf-8") as f:
         json.dump(
             {
@@ -4605,8 +4552,6 @@ def suggest_best_k(som, X, sample_ids, k_range=range(2, 11), output_dir="Sample_
             ensure_ascii=False,
             indent=2,
         )
-    print(f"已保存各指标推荐k: {metric_k_csv_path}")
-    print(f"已保存各指标推荐k(JSON): {metric_k_json_path}")
     return k_range, inertias, sil_scores, db_scores, ch_scores, elbow_k, metric_k, auto_final_k
 
 
@@ -4653,20 +4598,19 @@ def plot_sample_hex_cluster(som, grid_labels, sample_clusters, sample_ids, bmus,
         tick_label.set_fontname("Times New Roman")
     cb.set_label("Cluster ID", fontsize=27, fontname="Times New Roman")
     ax.set_title("SOM Sample Cluster Map", fontsize=27, pad=8, fontname="Times New Roman")
-    output_path = f"{output_dir}/样本蜂窝状聚类.png"
+    output_path = f"{output_dir}/som_hex_sample_clusters.png"
     _save_fixed_canvas_figure(fig, output_path)
     plt.close(fig)
-    print(f"已保存样本蜂窝状聚类图: {output_path}")
     return output_path
 
 
 def plot_sample_cluster_spatial_map(
     data,
     sample_labels,
-    x_col="XXX",
-    y_col="YYY",
+    x_col=None,
+    y_col=None,
     output_dir="Sample_Cluster_Results",
-    output_filename="样本聚类空间结果图.png",
+    output_filename='sample_cluster_spatial_map.png',
     title="Sample Cluster Spatial Map",
 ):
     lang = _resolve_output_language()
@@ -4678,8 +4622,8 @@ def plot_sample_cluster_spatial_map(
     labels_arr = np.asarray(sample_labels).reshape(-1)
     if labels_arr.shape[0] != len(data):
         return ""
-    x_candidates = [str(x_col), "经度", "longitude", "LONGITUDE", "Lon", "lon", "X", "x"]
-    y_candidates = [str(y_col), "纬度", "latitude", "LATITUDE", "Lat", "lat", "Y", "y"]
+    x_candidates = [str(x_col), '\u7ecf\u5ea6', "longitude", "LONGITUDE", "Lon", "lon", "X", "x"]
+    y_candidates = [str(y_col), '\u7eac\u5ea6', "latitude", "LATITUDE", "Lat", "lat", "Y", "y"]
     x_use = None
     y_use = None
     for c in x_candidates:
@@ -4698,9 +4642,9 @@ def plot_sample_cluster_spatial_map(
             from utils.data_utils import normalize_coordinates as _normalize_coordinates
         except Exception:
             from .utils.data_utils import normalize_coordinates as _normalize_coordinates
-        df_map, _ = _normalize_coordinates(df_map, x_col=str(x_use), y_col=str(y_use), lon_col="经度", lat_col="纬度")
-        x_use = "经度"
-        y_use = "纬度"
+        df_map, _ = _normalize_coordinates(df_map, x_col=str(x_use), y_col=str(y_use), lon_col='Longitude', lat_col='Latitude')
+        x_use = 'Longitude'
+        y_use = 'Latitude'
     except Exception:
         pass
     draw_df = pd.DataFrame(
@@ -4762,7 +4706,7 @@ def plot_sample_cluster_spatial_map(
         aspect="equal",
     )
     ax.scatter(x, y, c=c, s=8, cmap=cmap, norm=norm, edgecolors="none", alpha=0.45)
-    possible_label_cols = ["label", "target", "deposit", "矿床", "标签", "label_encoded", "target_encoded", "labeled", "has_deposit", "is_deposit", "Ore"]
+    possible_label_cols = ["label", "target", "deposit", '\u77ff\u5e8a', '\u6807\u7b7e', "label_encoded", "target_encoded", "labeled", "has_deposit", "is_deposit", "Ore"]
     label_col = None
     for col in possible_label_cols:
         if col in df_map.columns:
@@ -4790,7 +4734,7 @@ def plot_sample_cluster_spatial_map(
                     edgecolor="black",
                     linewidth=2,
                     alpha=0.85,
-                    label=_localize_text("已知矿床", lang=lang),
+                    label=_localize_text('Known Deposit', lang=lang),
                 )
         except Exception:
             pass
@@ -4814,8 +4758,8 @@ def plot_sample_cluster_spatial_map(
     cbar.set_ticklabels([f"Cluster {int(v)}" for v in unique_clusters])
     cbar.ax.tick_params(labelsize=14)
     ax.set_title(_localize_text(title, lang=lang), fontsize=20)
-    ax.set_xlabel(_localize_text("经度", lang=lang), fontsize=16)
-    ax.set_ylabel(_localize_text("纬度", lang=lang), fontsize=16)
+    ax.set_xlabel(_localize_text('Longitude', lang=lang), fontsize=16)
+    ax.set_ylabel(_localize_text('Latitude', lang=lang), fontsize=16)
     os.makedirs(output_dir, exist_ok=True)
     out_path = os.path.join(output_dir, output_filename)
     fig.savefig(out_path, dpi=300, format="png", bbox_inches="tight", pil_kwargs={"optimize": True, "compress_level": 9})
@@ -4837,7 +4781,7 @@ def plot_known_sample_count_by_cluster(
     labels_arr = np.asarray(sample_labels).reshape(-1)
     if labels_arr.shape[0] != len(data):
         return {"plot_path": "", "csv_path": "", "label_col": "", "counts": []}
-    possible_label_cols = ["Ore", "label", "target", "deposit", "矿床", "标签", "label_encoded", "target_encoded", "labeled", "has_deposit", "is_deposit"]
+    possible_label_cols = ["Ore", "label", "target", "deposit", '\u77ff\u5e8a', '\u6807\u7b7e', "label_encoded", "target_encoded", "labeled", "has_deposit", "is_deposit"]
     label_col = None
     for col in possible_label_cols:
         if col in data.columns:
@@ -4880,9 +4824,9 @@ def plot_known_sample_count_by_cluster(
     )
     for rect, value in zip(bars, known_pct.tolist()):
         ax.text(rect.get_x() + rect.get_width() / 2.0, rect.get_height(), f"{float(value):.2f}%", ha="center", va="bottom", fontsize=16)
-    title_prefix = _get_bilingual_text("已知样本分布占比", "Known Sample Share Distribution", lang=lang)
+    title_prefix = _get_bilingual_text('Known Sample Share Distribution', "Known Sample Share Distribution", lang=lang)
     ax.set_title(f"{title_prefix}", fontsize=20)
-    ax.set_xlabel(_get_bilingual_text("聚类类别", "Cluster", lang=lang), fontsize=16)
+    ax.set_xlabel(_get_bilingual_text('Cluster', "Cluster", lang=lang), fontsize=16)
     ax.set_ylabel("")
     ax.tick_params(axis="both", which="major", labelsize=16)
     ax.grid(axis="y", linestyle="--", alpha=0.3)
@@ -4899,22 +4843,22 @@ def plot_known_sample_count_by_cluster(
 
 
 def calculate_element_component_value(som, X_element, bmus):
-    X_element = ensure_2d_array(X_element, "元素数据X_element")
+    X_element = ensure_2d_array(X_element, 'element data X_element')
     if X_element.shape[1] != 1:
-        raise ValueError(f"X_element必须是单列二维数组，实际形状: {X_element.shape}")
+        raise ValueError(f"X_element must be a 2D array with exactly one column, but got shape {X_element.shape}")
     som_rows, som_cols = som.get_weights().shape[:2]
     count_matrix = np.zeros((som_rows, som_cols), dtype=int)
     sum_matrix = np.zeros((som_rows, som_cols), dtype=float)
     if len(bmus.shape) != 2 or bmus.shape[1] != 2:
-        raise ValueError(f"bmus必须是形状为(n_samples, 2)的数组，实际为{bmus.shape}")
+        raise ValueError(f"bmus must have shape (n_samples, 2), but got {bmus.shape}")
     if X_element.shape[0] != bmus.shape[0]:
-        raise ValueError(f"样本数不匹配: X_element={X_element.shape[0]}, bmus={bmus.shape[0]}")
+        raise ValueError(f"Sample-count mismatch: X_element={X_element.shape[0]}, bmus={bmus.shape[0]}")
     bmus_i = bmus[:, 0].astype(int)
     bmus_j = bmus[:, 1].astype(int)
     valid_mask = (bmus_i >= 0) & (bmus_i < som_rows) & (bmus_j >= 0) & (bmus_j < som_cols)
     valid_count = np.sum(valid_mask)
-    logger.debug(f"元素值范围: [{X_element.min():.4f}, {X_element.max():.4f}]")
-    logger.debug(f"有效BMU比例: {valid_count / len(bmus):.2%} ({valid_count}/{len(bmus)})")
+    logger.debug(f"Element-value range: [{X_element.min():.4f}, {X_element.max():.4f}]")
+    logger.debug(f"Valid BMU ratio: {valid_count / len(bmus):.2%} ({valid_count}/{len(bmus)})")
     np.add.at(count_matrix, (bmus_i[valid_mask], bmus_j[valid_mask]), 1)
     np.add.at(sum_matrix, (bmus_i[valid_mask], bmus_j[valid_mask]), X_element[valid_mask, 0])
     component_values = np.divide(
@@ -4926,7 +4870,7 @@ def calculate_element_component_value(som, X_element, bmus):
     zero_mask = count_matrix == 0
     num_zero_neurons = np.sum(zero_mask)
     if num_zero_neurons > 0:
-        logger.debug(f"发现 {num_zero_neurons} 个灰色节点，正在填充...")
+        logger.debug(f"Found {num_zero_neurons} gray neurons; filling them with nearest valid values...")
         valid_coords = np.argwhere(~zero_mask)
         valid_values = component_values[~zero_mask]
         for (i, j) in np.argwhere(zero_mask):
@@ -4934,7 +4878,7 @@ def calculate_element_component_value(som, X_element, bmus):
             nearest_idx = np.argmin(distances)
             component_values[i, j] = valid_values[nearest_idx]
     valid_neurons = np.sum(~np.isnan(component_values))
-    logger.debug(f"有效神经元: {valid_neurons}/{som_rows * som_cols}")
+    logger.debug(f"Valid neurons: {valid_neurons}/{som_rows * som_cols}")
     return component_values
 
 
@@ -5015,14 +4959,13 @@ def plot_single_element_component_plane(som, component_values, element_name, out
     output_path = f"{output_dir}/{element_name}_component_plane{boundary_suffix}.png"
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close(fig)
-    logger.debug(f"已保存 {element_name} 成分平面图{title_suffix}: {output_path}")
+    logger.debug(f"Saved {element_name} component plane{title_suffix}: {output_path}")
 
 
 def generate_all_elements_component_planes(som, X_scaled, elements, bmus, grid_labels, output_dir, force_element_range=False):
-    X_scaled = ensure_2d_array(X_scaled, "成分平面生成数据X_scaled")
+    X_scaled = ensure_2d_array(X_scaled, 'component-plane input X_scaled')
     component_plane_dir = output_dir
     os.makedirs(component_plane_dir, exist_ok=True)
-    print(f"\n开始批量生成 {len(elements)} 个元素的成分平面图（仅无边界）...")
     all_component_values = []
     for elem_idx in range(X_scaled.shape[1]):
         X_element = X_scaled[:, [elem_idx]]
@@ -5030,10 +4973,10 @@ def generate_all_elements_component_planes(som, X_scaled, elements, bmus, grid_l
         all_component_values.append(component_values)
     flattened = np.concatenate([cv[~np.isnan(cv)].flatten() for cv in all_component_values])
     global_min, global_max = np.min(flattened), np.max(flattened)
-    logger.debug(f"全局元素值范围: {global_min:.4f} 至 {global_max:.4f}")
+    logger.debug(f"Global element-value range: {global_min:.4f} to {global_max:.4f}")
     value_ranges = []
     for elem_idx, elem_name in enumerate(elements):
-        logger.debug(f"处理元素: {elem_name} ({elem_idx + 1}/{len(elements)})")
+        logger.debug(f"Processing element: {elem_name} ({elem_idx + 1}/{len(elements)})")
         X_element = X_scaled[:, [elem_idx]]
         component_values = calculate_element_component_value(som, X_element, bmus)
         elem_min = float(np.nanmin(component_values))
@@ -5058,9 +5001,6 @@ def generate_all_elements_component_planes(som, X_scaled, elements, bmus, grid_l
         )
     value_range_csv_path = os.path.join(component_plane_dir, "component_plane_value_ranges.csv")
     _localize_dataframe_headers(pd.DataFrame(value_ranges)).to_csv(value_range_csv_path, index=False, encoding="utf-8-sig")
-    print(f"所有元素成分平面图已保存至: {component_plane_dir}")
-    print(f"元素成分平面数值范围已保存至: {value_range_csv_path}")
-    print("每个元素仅生成一个文件：xxx_component_plane.png（无边界）")
     return all_component_values
 
 
@@ -5086,24 +5026,23 @@ def analyze_element_component_correlation(som, X_scaled, elements, bmus, all_com
             pattern_similarity[i, j] = overlap
     corr_df = pd.DataFrame(pearson_corr, index=elements, columns=elements)
     pattern_df = pd.DataFrame(pattern_similarity, index=elements, columns=elements)
-    _localize_dataframe_headers(corr_df).to_csv(f"{correlation_dir}/元素组分面皮尔逊相关系数.csv", encoding='utf-8-sig')
-    _localize_dataframe_headers(pattern_df).to_csv(f"{correlation_dir}/元素组分面高值区重叠度.csv", encoding='utf-8-sig')
+    _localize_dataframe_headers(corr_df).to_csv(f"{correlation_dir}/element_component_plane_pearson_correlation.csv", encoding='utf-8-sig')
+    _localize_dataframe_headers(pattern_df).to_csv(f"{correlation_dir}/element_component_plane_high_value_overlap.csv", encoding='utf-8-sig')
     plt.figure(figsize=(14, 12), dpi=300)
     mask = np.triu(np.ones_like(corr_df, dtype=bool))
     sns.heatmap(corr_df, mask=mask, annot=False, fmt=".2f", cmap="coolwarm", vmin=-1, vmax=1, cbar_kws={"label": "Pearson Correlation Coefficient"})
     plt.title("Correlation Heatmap of Element Component Planes", fontsize=16, pad=20)
     plt.tight_layout()
-    plt.savefig(f"{correlation_dir}/元素组分面相关性热图.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"{correlation_dir}/element_component_plane_correlation_heatmap.png", dpi=300, bbox_inches='tight')
     plt.close()
     plt.figure(figsize=(12, 8), dpi=300)
     sns.clustermap(corr_df, cmap="coolwarm", vmin=-1, vmax=1, figsize=(12, 10), cbar_pos=(0.02, 0.8, 0.05, 0.18))
-    plt.savefig(f"{correlation_dir}/元素组分面聚类树状图.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"{correlation_dir}/element_component_plane_clustermap.png", dpi=300, bbox_inches='tight')
     plt.close()
-    print(f"元素组分面相关性分析完成，结果保存在: {correlation_dir}")
     return corr_df, pattern_df
 
 
-def analyze_cluster_elements(data, elements, cluster_col='聚类', output_dir="cluster_analysis"):
+def analyze_cluster_elements(data, elements, cluster_col='cluster', output_dir="cluster_analysis"):
     os.makedirs(output_dir, exist_ok=True)
     cluster_stats = {}
     overall_mean = data[elements].mean()
@@ -5120,24 +5059,20 @@ def analyze_cluster_elements(data, elements, cluster_col='聚类', output_dir="c
             'enrichment': enrichment,
             'sample_count': len(cluster_samples)
         }
-        print(f"聚类 {cluster_id} 包含 {len(cluster_samples)} 个样本")
-    stats_df = pd.DataFrame({f"聚类{cid}_均值": stats['mean'] for cid, stats in cluster_stats.items()})
-    _localize_dataframe_headers(stats_df).to_csv(f"{output_dir}/聚类元素均值.csv", encoding='utf-8-sig')
-    print(f"已保存聚类元素统计: {output_dir}/聚类元素均值.csv")
+    stats_df = pd.DataFrame({f"cluster_{cid}_mean": stats['mean'] for cid, stats in cluster_stats.items()})
+    _localize_dataframe_headers(stats_df).to_csv(f"{output_dir}/cluster_element_means.csv", encoding='utf-8-sig')
     enrichment_df = pd.DataFrame({f"Cluster {cid}": stats['enrichment'] for cid, stats in cluster_stats.items()})
     plt.close('all')
     plt.figure(figsize=(12, 10), dpi=300)
     sns.heatmap(enrichment_df, annot=True, fmt=".2f", cmap="YlOrRd", cbar_kws={'label': 'Enrichment Factor (Cluster Mean / Global Mean)'})
     plt.title("Element Enrichment Heatmap by Cluster", fontsize=15, pad=20, fontweight='bold')
     plt.tight_layout()
-    plt.savefig(f"{output_dir}/聚类元素富集热图.png", bbox_inches='tight', dpi=300, facecolor='white')
+    plt.savefig(f"{output_dir}/cluster_element_enrichment_heatmap.png", bbox_inches='tight', dpi=300, facecolor='white')
     plt.close()
-    print(f"已保存富集热图: {output_dir}/聚类元素富集热图.png")
-    with open(f"{output_dir}/聚类特征元素.txt", 'w', encoding='utf-8') as f:
+    with open(f"{output_dir}/cluster_signature_elements.txt", 'w', encoding='utf-8') as f:
         for cid, stats in cluster_stats.items():
             top_elements = stats['enrichment'].sort_values(ascending=False).head(3).index.tolist()
-            f.write(f"聚类 {cid} 特征元素（富集系数最高）: {', '.join(top_elements)}\n")
-            print(f"聚类 {cid} 特征元素: {', '.join(top_elements)}")
+            f.write(f"Cluster {cid} signature elements (highest enrichment factors): {', '.join(top_elements)}\n")
     return cluster_stats
 
 
@@ -5149,20 +5084,17 @@ def train_base_model_for_shap(X, y, random_state=42):
         n_jobs=-1
     )
     base_model.fit(X, y)
-    print(f"基础模型训练完成，准确率: {base_model.score(X, y):.4f}")
     return base_model
 
 
 def calculate_shap_values(base_model, X, elements, sample_ids, core_elements_config):
     valid_core_elements = [elem for elem in core_elements_config if elem in elements]
     if not valid_core_elements:
-        raise ValueError(f"配置的核心元素{core_elements_config}均不在数据元素列表中，请检查！")
+        raise ValueError(f"None of the configured core elements {core_elements_config} exist in the data element list. Please check the input.")
     if len(valid_core_elements) != len(core_elements_config):
         missing = [elem for elem in core_elements_config if elem not in elements]
-        print(f"警告：部分核心元素不存在于数据中，已自动过滤：{missing}")
     core_indices = [elements.index(elem) for elem in valid_core_elements]
     num_core = len(valid_core_elements)
-    print(f"已锁定核心元素组合（{num_core}种）：{valid_core_elements}")
     explainer = shap.TreeExplainer(base_model)
     shap_values = explainer.shap_values(X)
     if isinstance(shap_values, list):
@@ -5170,7 +5102,7 @@ def calculate_shap_values(base_model, X, elements, sample_ids, core_elements_con
     if shap_values.ndim == 3:
         shap_values = shap_values[:, :, 1]
     if shap_values.ndim != 2:
-        raise ValueError(f"SHAP值维度错误，需为2维，实际为{shap_values.ndim}维")
+        raise ValueError(f"Invalid SHAP dimension: a 2D matrix is required, but got {shap_values.ndim} dimensions")
     shap_values_core = shap_values[:, core_indices]
     global_shap = np.mean(np.abs(shap_values_core), axis=0).flatten()
     sorted_indices = np.lexsort((valid_core_elements, -global_shap))
@@ -5178,30 +5110,25 @@ def calculate_shap_values(base_model, X, elements, sample_ids, core_elements_con
     for r, idx in enumerate(sorted_indices, 1):
         rank[idx] = r
     global_shap_df = pd.DataFrame({
-        "元素名称": valid_core_elements,
-        "全局SHAP值（平均绝对）": global_shap,
-        "组合内贡献度排名": rank
-    }).sort_values("全局SHAP值（平均绝对）", ascending=False)
+        'Element Name': valid_core_elements,
+        'Global SHAP Value (Mean Absolute)': global_shap,
+        'Contribution Rank Within Combination': rank
+    }).sort_values('Global SHAP Value (Mean Absolute)', ascending=False)
     sample_shap_df = pd.DataFrame(
         shap_values_core,
         columns=[f"{elem}_SHAP" for elem in valid_core_elements],
         index=sample_ids
     )
-    sample_shap_df["核心元素总SHAP值"] = sample_shap_df.sum(axis=1)
-    print("\nSHAP值计算验证：")
-    print(f"  - 完整SHAP值矩阵维度：{shap_values.shape}（应为(样本数, 37)）")
-    print(f"  - 核心元素数量：{num_core}（与输入组合一致）")
-    print(f"  - 样本级SHAP值维度：{sample_shap_df.shape}（样本数×核心元素数+1）")
-    print(f"  - 组合内排名范围：1-{num_core}（符合预期）")
+    sample_shap_df['Total SHAP of Core Elements'] = sample_shap_df.sum(axis=1)
     return shap_values, explainer, global_shap_df, sample_shap_df, valid_core_elements
 
 
 def plot_shap_importance_ranking(global_shap_df, valid_core_elements, output_dir):
-    core_shap_data = global_shap_df[global_shap_df["元素名称"].isin(valid_core_elements)].sort_values("全局SHAP值（平均绝对）", ascending=True)
+    core_shap_data = global_shap_df[global_shap_df['Element Name'].isin(valid_core_elements)].sort_values('Global SHAP Value (Mean Absolute)', ascending=True)
     plt.figure(figsize=(10, 8), dpi=300)
     bars = plt.barh(
-        y=core_shap_data["元素名称"],
-        width=core_shap_data["全局SHAP值（平均绝对）"],
+        y=core_shap_data['Element Name'],
+        width=core_shap_data['Global SHAP Value (Mean Absolute)'],
         color=plt.cm.coolwarm(np.linspace(0.2, 0.8, len(core_shap_data))),
         edgecolor="black",
         linewidth=0.8
@@ -5209,7 +5136,7 @@ def plot_shap_importance_ranking(global_shap_df, valid_core_elements, output_dir
     for i, bar in enumerate(bars):
         width = bar.get_width()
         plt.text(
-            width + max(core_shap_data["全局SHAP值（平均绝对）"]) * 0.01,
+            width + max(core_shap_data['Global SHAP Value (Mean Absolute)']) * 0.01,
             bar.get_y() + bar.get_height() / 2,
             f"{width:.4f}",
             va="center",
@@ -5237,10 +5164,9 @@ def plot_shap_importance_ranking(global_shap_df, valid_core_elements, output_dir
         )
     plt.grid(axis="x", alpha=0.3, linestyle="--")
     plt.tight_layout()
-    ranking_plot_path = f"{output_dir}/SHAP_核心元素特征重要性排序图.png"
+    ranking_plot_path = f"{output_dir}/shap_core_element_importance_ranking.png"
     plt.savefig(ranking_plot_path, bbox_inches="tight", dpi=300, facecolor="white", edgecolor="none")
     plt.close()
-    print(f"已保存SHAP特征重要性排序图: {ranking_plot_path}")
 
 
 def plot_shap_visualizations(explainer, X, shap_values, elements, sample_shap_df, global_shap_df, output_dir, valid_core_elements):
@@ -5249,9 +5175,9 @@ def plot_shap_visualizations(explainer, X, shap_values, elements, sample_shap_df
     core_indices = [elements.index(elem) for elem in valid_core_elements]
     if max(core_indices) >= shap_values.shape[1]:
         raise ValueError(
-            f"核心元素索引超出SHAP值维度！\n"
-            f"SHAP值列数：{shap_values.shape[1]}，核心元素最大索引：{max(core_indices)}\n"
-            f"请确认X_scaled是否完整（应为37列），或核心元素是否在elements列表中"
+            f"Core-element indices exceed the SHAP matrix width.\n"
+            f"Number of SHAP columns: {shap_values.shape[1]}, maximum core-element index: {max(core_indices)}\n"
+            f"Please confirm that X_scaled is complete (expected 37 columns) and that the core elements exist in the elements list."
         )
     shap_values_core = shap_values[:, core_indices]
     X_core = X[:, core_indices]
@@ -5283,13 +5209,12 @@ def plot_shap_visualizations(explainer, X, shap_values, elements, sample_shap_df
         )
     plt.rcParams['font.family'] = original_font
     plt.tight_layout()
-    summary_plot_path = f"{shap_output_dir}/SHAP_核心元素贡献度SummaryPlot.png"
+    summary_plot_path = f"{shap_output_dir}/shap_core_element_contribution_summary_plot.png"
     plt.savefig(summary_plot_path, dpi=300, facecolor='white')
     plt.close()
-    print(f"已保存核心元素SHAP贡献度图: {summary_plot_path}")
     plt.figure(figsize=(10, 6), dpi=300)
-    sns.histplot(sample_shap_df["核心元素总SHAP值"], bins=50, kde=True, color="#1f77b4")
-    shap_95 = sample_shap_df["核心元素总SHAP值"].quantile(0.95)
+    sns.histplot(sample_shap_df['Total SHAP of Core Elements'], bins=50, kde=True, color="#1f77b4")
+    shap_95 = sample_shap_df['Total SHAP of Core Elements'].quantile(0.95)
     plt.axvline(x=shap_95, color='red', linestyle='--', linewidth=2, label=f"95th Percentile: {shap_95:.4f}")
     if chinese_font is not None:
         plt.xlabel(f"Total SHAP Value of Core Elements ({', '.join(valid_core_elements)})", fontsize=12, fontproperties=chinese_font)
@@ -5311,31 +5236,23 @@ def plot_shap_visualizations(explainer, X, shap_values, elements, sample_shap_df
         )
         plt.legend()
     plt.tight_layout()
-    dist_plot_path = f"{shap_output_dir}/核心元素总SHAP值分布.png"
+    dist_plot_path = f"{shap_output_dir}/core_element_total_shap_distribution.png"
     plt.savefig(dist_plot_path, bbox_inches='tight', dpi=300, facecolor='white')
     plt.close()
     plot_shap_importance_ranking(global_shap_df=global_shap_df, valid_core_elements=valid_core_elements, output_dir=shap_output_dir)
-    global_shap_core = global_shap_df[global_shap_df["元素名称"].isin(valid_core_elements)].sort_values("全局SHAP值（平均绝对）", ascending=False)
-    global_shap_path = f"{shap_output_dir}/核心元素全局SHAP贡献度（组合内排名）.csv"
+    global_shap_core = global_shap_df[global_shap_df['Element Name'].isin(valid_core_elements)].sort_values('Global SHAP Value (Mean Absolute)', ascending=False)
+    global_shap_path = f"{shap_output_dir}/core_element_global_shap_contribution.csv"
     _localize_dataframe_headers(global_shap_core).to_csv(global_shap_path, index=False, encoding='utf-8-sig')
-    sample_shap_path = f"{shap_output_dir}/样本级核心元素SHAP值（含总SHAP值）.csv"
+    sample_shap_path = f"{shap_output_dir}/sample_level_core_element_shap_values.csv"
     _localize_dataframe_headers(sample_shap_df).to_csv(sample_shap_path, encoding='utf-8-sig')
-    print(f"已保存核心元素SHAP数据至: {shap_output_dir}")
     return shap_output_dir
 
 
 def run_shap_analysis(X_scaled, sample_labels, elements, sample_ids, output_dir, core_clusters=None, core_elements=None):
-    print("\n" + "=" * 60)
-    print("===== 新增模块：SHAP值分析（成矿指示元素组合专属） =====")
-    print("=" * 60)
     if shap is None:
-        print("SHAP依赖不可用，跳过SHAP分析")
         return None, None, ""
     unique_clusters = sorted(np.unique(sample_labels).tolist())
-    print("\n步骤1：选择成矿核心聚类簇")
-    print(f"当前数据中存在的聚类簇：{unique_clusters}")
     if core_clusters is None or core_clusters == "":
-        print("未提供核心聚类簇，跳过SHAP分析")
         return None, None, ""
     try:
         if isinstance(core_clusters, str):
@@ -5344,19 +5261,13 @@ def run_shap_analysis(X_scaled, sample_labels, elements, sample_ids, output_dir,
             core_cluster = [int(x) for x in list(core_clusters)]
         invalid_clusters = [c for c in core_cluster if c not in unique_clusters]
         if invalid_clusters:
-            raise ValueError(f"输入的聚类簇{invalid_clusters}不存在，可用簇为{unique_clusters}")
+            raise ValueError(f"The input clusters {invalid_clusters} do not exist. Available clusters are {unique_clusters}")
         if not core_cluster:
-            raise ValueError("未输入任何核心聚类簇")
+            raise ValueError('No core clusters were provided')
     except ValueError as e:
-        print(f"输入错误：{e}")
         raise
-    print(f"已选择核心聚类簇：{core_cluster}")
     y = np.where(np.isin(sample_labels, core_cluster), 1, 0)
-    print(f"成矿核心簇标记完成：核心簇样本数: {np.sum(y)}, 非核心簇样本数: {len(y) - np.sum(y)}")
-    print("\n步骤2：配置核心成矿元素")
-    print(f"当前数据中的所有元素：{elements}")
     if core_elements is None or core_elements == "":
-        print("未提供核心成矿元素，跳过SHAP分析")
         return None, None, ""
     try:
         if isinstance(core_elements, str):
@@ -5365,13 +5276,11 @@ def run_shap_analysis(X_scaled, sample_labels, elements, sample_ids, output_dir,
             core_elements_config = [str(elem).strip() for elem in list(core_elements) if str(elem).strip()]
         invalid_elems = [elem for elem in core_elements_config if elem not in elements]
         if invalid_elems:
-            raise ValueError(f"输入的元素{invalid_elems}不存在，可用元素为{elements}")
+            raise ValueError(f"The input elements {invalid_elems} do not exist. Available elements are {elements}")
         if not core_elements_config:
-            raise ValueError("未输入任何核心元素")
+            raise ValueError('No core elements were provided')
     except ValueError as e:
-        print(f"输入错误：{e}")
         raise
-    print(f"已配置核心成矿元素：{core_elements_config}")
     base_model = train_base_model_for_shap(X_scaled, y)
     shap_values, explainer, global_shap_df, sample_shap_df, valid_core_elements = calculate_shap_values(
         base_model=base_model,
@@ -5390,9 +5299,7 @@ def run_shap_analysis(X_scaled, sample_labels, elements, sample_ids, output_dir,
         output_dir=output_dir,
         valid_core_elements=valid_core_elements
     )
-    print("\n核心成矿元素组合内SHAP值贡献度排名：")
-    core_shap_rank = global_shap_df[global_shap_df["元素名称"].isin(valid_core_elements)].sort_values("全局SHAP值（平均绝对）", ascending=False)
-    print(core_shap_rank[["元素名称", "全局SHAP值（平均绝对）", "组合内贡献度排名"]].to_string(index=False))
+    core_shap_rank = global_shap_df[global_shap_df['Element Name'].isin(valid_core_elements)].sort_values('Global SHAP Value (Mean Absolute)', ascending=False)
     return shap_values, sample_shap_df, shap_output_dir
 
 
@@ -5400,8 +5307,8 @@ def run_som_cluster_analysis_from_df(
     *,
     df,
     output_dir: str,
-    x_col: str = "XXX",
-    y_col: str = "YYY",
+    x_col: str | None = None,
+    y_col: str | None = None,
     elements=None,
     ore_elements=None,
     k: int | None = None,
@@ -5413,7 +5320,7 @@ def run_som_cluster_analysis_from_df(
     core_elements=None,
 ):
     if elements is None:
-        raise ValueError("elements不能为空")
+        raise ValueError('elements cannot be empty')
     if ore_elements is None:
         ore_elements = []
     output_dir = os.path.abspath(str(output_dir))
@@ -5474,7 +5381,7 @@ def run_som_cluster_analysis_from_df(
     if final_k > max_k:
         final_k = max_k
     if final_k < 3:
-        raise ValueError(f"聚类数final_k无效: final_k={final_k}, max_k={max_k}")
+        raise ValueError(f"Invalid final_k for clustering: final_k={final_k}, max_k={max_k}")
     grid_labels, sample_labels, sample_clusters, bmus, metrics = apply_kmeans_to_samples(
         som=best_som,
         X=X_scaled,
@@ -5501,15 +5408,15 @@ def run_som_cluster_analysis_from_df(
             x_col=str(x_col),
             y_col=str(y_col),
             output_dir=artifacts_dir,
-            output_filename="样本聚类空间结果图.png",
-            title="样本聚类空间结果图",
+            output_filename='sample_cluster_spatial_map.png',
+            title='Sample Cluster Spatial Map',
         )
     except Exception:
         cluster_spatial_map_path = ""
     arcgis_cluster_path = ""
     try:
-        x_candidates = [str(x_col), "经度", "longitude", "LONGITUDE", "Lon", "lon", "X", "x"]
-        y_candidates = [str(y_col), "纬度", "latitude", "LATITUDE", "Lat", "lat", "Y", "y"]
+        x_candidates = [str(x_col), '\u7ecf\u5ea6', "longitude", "LONGITUDE", "Lon", "lon", "X", "x"]
+        y_candidates = [str(y_col), '\u7eac\u5ea6', "latitude", "LATITUDE", "Lat", "lat", "Y", "y"]
         x_use = None
         y_use = None
         for c in x_candidates:
@@ -5523,13 +5430,13 @@ def run_som_cluster_analysis_from_df(
         if x_use is not None and y_use is not None:
             arcgis_cluster_data = pd.DataFrame(
                 {
-                    "样本编号": sample_ids,
+                    'Sample ID': sample_ids,
                     str(x_use): pd.to_numeric(data[x_use], errors="coerce"),
                     str(y_use): pd.to_numeric(data[y_use], errors="coerce"),
-                    "聚类编号": pd.to_numeric(pd.Series(sample_labels, index=data.index), errors="coerce"),
+                    'Cluster ID': pd.to_numeric(pd.Series(sample_labels, index=data.index), errors="coerce"),
                 }
-            ).dropna(subset=[str(x_use), str(y_use), "聚类编号"])
-            arcgis_cluster_data["聚类编号"] = arcgis_cluster_data["聚类编号"].astype(int)
+            ).dropna(subset=[str(x_use), str(y_use), 'Cluster ID'])
+            arcgis_cluster_data['Cluster ID'] = arcgis_cluster_data['Cluster ID'].astype(int)
             arcgis_cluster_path = os.path.join(artifacts_dir, "Cluster_for_ArcGIS.csv")
             _localize_dataframe_headers(arcgis_cluster_data).to_csv(arcgis_cluster_path, index=False, encoding="utf-8-sig")
     except Exception:
@@ -5614,7 +5521,7 @@ def run_som_cluster_analysis_from_df(
 
 def load_best_som_params_from_main(params_path):
     if not os.path.exists(params_path):
-        raise FileNotFoundError(f"主代码最优参数文件不存在: {params_path}")
+        raise FileNotFoundError(f"The best-parameter file from the main code does not exist: {params_path}")
     best_params = {}
     with open(params_path, 'r', encoding='utf-8') as f:
         for line in f:
@@ -5630,7 +5537,7 @@ def load_best_som_params_from_main(params_path):
                 if len(parts) >= 2:
                     best_params[key] = (int(float(parts[0])), int(float(parts[1])))
                 else:
-                    raise ValueError(f"map_size解析失败: {value}")
+                    raise ValueError(f"Failed to parse map_size: {value}")
             elif key in ['sigma', 'lr']:
                 best_params[key] = float(value)
             elif key == 'iterations':
@@ -5638,12 +5545,12 @@ def load_best_som_params_from_main(params_path):
     required_keys = ['sigma', 'lr', 'iterations', 'map_size']
     missing_keys = [k for k in required_keys if k not in best_params]
     if missing_keys:
-        raise ValueError(f"主代码参数文件缺少必要参数: {missing_keys}")
-    logger.info("从主代码读取的最优SOM参数:")
-    logger.info(f"  - 邻域半径(sigma): {best_params['sigma']}")
-    logger.info(f"  - 学习率(lr): {best_params['lr']}")
-    logger.info(f"  - 迭代次数(iterations): {best_params['iterations']}")
-    logger.info(f"  - 网格尺寸(map_size): {best_params['map_size']}")
+        raise ValueError(f"The main-code parameter file is missing required keys: {missing_keys}")
+    logger.info('Best SOM parameters loaded from the main code:')
+    logger.info(f"  - Neighborhood radius (sigma): {best_params['sigma']}")
+    logger.info(f"  - Learning rate (lr): {best_params['lr']}")
+    logger.info(f"  - Iterations: {best_params['iterations']}")
+    logger.info(f"  - Grid size (map_size): {best_params['map_size']}")
     return best_params
 
 
@@ -5652,36 +5559,36 @@ def calculate_adaptive_spatial_radius(coordinates, k_neighbors=5):
     nn.fit(coordinates)
     distances, _ = nn.kneighbors(coordinates)
     adaptive_radius = np.mean(distances[:, -1])
-    logger.info(f"自适应空间滤波半径: {adaptive_radius:.2f}（基于3近邻距离计算）")
+    logger.info(f"Adaptive spatial-filter radius: {adaptive_radius:.2f} (estimated from 3-nearest-neighbor distances)")
     return adaptive_radius
 
 
 def load_mineral_elements_data_from_df(df, x_col, y_col, mineral_elements, sample_id_col=None):
     if not isinstance(df, pd.DataFrame) or df.empty:
-        raise ValueError("df不能为空且必须是DataFrame")
+        raise ValueError('df must be a non-empty DataFrame')
     missing_cols = [col for col in mineral_elements if col not in df.columns]
     if missing_cols:
-        raise ValueError(f"df中缺少成矿元素列: {missing_cols}")
+        raise ValueError(f"df is missing mineralization-related element columns: {missing_cols}")
     if x_col not in df.columns or y_col not in df.columns:
-        raise ValueError(f"df中缺少坐标列: x_col={x_col}, y_col={y_col}")
+        raise ValueError(f"df is missing coordinate columns: x_col={x_col}, y_col={y_col}")
     data = df[mineral_elements].to_numpy(copy=True)
     coordinates = df[[x_col, y_col]].to_numpy(copy=True)
     sample_ids = df[sample_id_col].to_numpy(copy=True) if sample_id_col else None
-    logger.info(f"成功加载成矿元素数据: {len(data)}个样本, {len(mineral_elements)}个元素")
+    logger.info(f"Loaded mineralization-related element data successfully: {len(data)} samples, {len(mineral_elements)} elements")
     data = np.where(data <= 0, np.min(data[data > 0]) / 10, data)
     return data, coordinates, mineral_elements, sample_ids, df[[x_col, y_col]].copy()
 
 
 def train_mineral_som(data, mineral_elements, grid_size, sigma, learning_rate, iterations, save_path=None, full_som_path=None, full_elements_path=None):
     if MiniSom is None:
-        raise ModuleNotFoundError("缺少依赖minisom，请先安装: python -m pip install minisom")
+        raise ModuleNotFoundError('Missing dependency `minisom`. Please install it first: python -m pip install minisom')
     if save_path is None:
         save_path = os.path.join(OUTPUT_DIR, "mineral_som_model.pkl")
     n_features = data.shape[1]
-    logger.info("\n=== 训练成矿元素专属SOM模型 ===")
-    logger.info(f"  - 输入维度: {n_features}（成矿元素数量）")
-    logger.info(f"  - 网格尺寸: {grid_size[0]}×{grid_size[1]}")
-    logger.info(f"  - 迭代次数: {iterations}")
+    logger.info('\n=== Training The Mineral-Element-Specific SOM Model ===')
+    logger.info(f"  - Input dimension: {n_features} (number of mineralization-related elements)")
+    logger.info(f"  - Grid size: {grid_size[0]}x{grid_size[1]}")
+    logger.info(f"  - Iterations: {iterations}")
     init_weights = None
     if full_som_path and os.path.exists(full_som_path):
         full_som = joblib.load(full_som_path)
@@ -5699,21 +5606,21 @@ def train_mineral_som(data, mineral_elements, grid_size, sigma, learning_rate, i
                 resolved_elements_path = str(p)
                 break
         if not resolved_elements_path:
-            logger.warning(f"元素名称列表文件不存在: {candidate_paths}。无法使用全元素模型权重初始化。")
+            logger.warning(f"The element-name list file does not exist: {candidate_paths}. Cannot initialize with weights from the full-element model.")
         else:
             full_elements = joblib.load(resolved_elements_path)
             try:
                 mineral_indices = [list(full_elements).index(elem) for elem in mineral_elements if elem in full_elements]
                 if len(mineral_indices) == len(mineral_elements):
                     init_weights = full_som.get_weights()[:, :, mineral_indices]
-                    logger.info("用主代码全元素SOM模型的权重初始化（截取成矿元素维度）")
+                    logger.info('Initialized with weights from the full-element SOM model in the main code (restricted to mineral-element dimensions)')
                 else:
                     missing_in_full = [elem for elem in mineral_elements if elem not in full_elements]
-                    logger.warning(f"主代码全元素模型缺少部分成矿元素: {missing_in_full}，使用随机初始化")
+                    logger.warning(f"The full-element model from the main code is missing some mineral elements: {missing_in_full}. Using random initialization.")
             except Exception as e:
-                logger.warning(f"获取全元素模型权重失败: {e}，使用随机初始化")
+                logger.warning(f"Failed to retrieve weights from the full-element model: {e}. Using random initialization.")
     else:
-        logger.warning("主代码全元素SOM模型不存在，使用随机初始化")
+        logger.warning('The full-element SOM model from the main code does not exist. Using random initialization.')
     som = MiniSom(
         x=grid_size[0],
         y=grid_size[1],
@@ -5727,7 +5634,7 @@ def train_mineral_som(data, mineral_elements, grid_size, sigma, learning_rate, i
         som._weights = init_weights
     som.train_random(data, iterations)
     joblib.dump(som, save_path)
-    logger.info(f"成矿元素专属SOM模型已保存到 {save_path}")
+    logger.info(f"Mineral-element-specific SOM model saved to {save_path}")
     return som
 
 
@@ -5751,23 +5658,23 @@ def calculate_mineral_qe(data, som):
 
 
 def calculate_element_qe_correlation(original_data, qe_scores, element_names):
-    logger.info("\n=== 计算元素含量与QE异常分数相关性 ===")
-    original_data = ensure_2d_array(original_data, "原始元素数据")
-    qe_scores = ensure_2d_array(qe_scores, "QE分数").flatten()
+    logger.info('\n=== Computing Correlations Between Element Concentrations And QE Anomaly Scores ===')
+    original_data = ensure_2d_array(original_data, 'original element data')
+    qe_scores = ensure_2d_array(qe_scores, 'QE scores').flatten()
     correlation_dict = {}
     for i, element in enumerate(element_names):
         element_data = original_data[:, i]
         correlation, p_value = pearsonr(element_data, qe_scores)
         correlation_dict[element] = {'correlation': correlation, 'p_value': p_value}
-        significance = "显著" if p_value < 0.05 else "不显著"
-        direction = "正相关" if correlation > 0 else "负相关"
-        magnitude = "强" if abs(correlation) > 0.7 else "中" if abs(correlation) > 0.3 else "弱"
-        logger.info(f"元素{element}: 相关系数={correlation:.4f} ({direction}, {magnitude}{significance})")
+        significance = 'significant' if p_value < 0.05 else 'not significant'
+        direction = 'positive correlation' if correlation > 0 else 'negative correlation'
+        magnitude = 'strong' if abs(correlation) > 0.7 else 'medium' if abs(correlation) > 0.3 else 'weak'
+        logger.info(f"Element {element}: correlation={correlation:.4f} ({direction}, {magnitude}{significance})")
     return correlation_dict
 
 
 def visualize_element_qe_correlation(correlation_dict, output_path=None):
-    logger.info("\n=== 可视化元素含量与QE异常分数相关性 ===")
+    logger.info('\n=== Visualizing Correlations Between Element Concentrations And QE Anomaly Scores ===')
     _setup_matplotlib_output_style(plt)
     elements = list(correlation_dict.keys())
     correlations = [correlation_dict[elem]['correlation'] for elem in elements]
@@ -5809,7 +5716,7 @@ def visualize_element_qe_correlation(correlation_dict, output_path=None):
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     if output_path:
         plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
-        logger.info(f"元素-QE相关性可视化图表已保存到 {output_path}")
+        logger.info(f"Element-QE correlation figure saved to {output_path}")
     else:
         plt.show()
     plt.close()
@@ -5829,18 +5736,18 @@ def apply_spatial_filter(qe_scores, coordinates, radius=None):
             filtered_scores[i] = weighted_sum / np.sum(weights)
         else:
             filtered_scores[i] = qe_scores[i]
-    logger.info(f"改进空间滤波后QE分数范围: {np.min(filtered_scores):.6f} - {np.max(filtered_scores):.6f}")
+    logger.info(f"QE score range after improved spatial filtering: {np.min(filtered_scores):.6f} - {np.max(filtered_scores):.6f}")
     return filtered_scores
 
 
 def generate_arcgis_output(coordinates_df, qe_scores, output_path=None):
     if coordinates_df is None or len(coordinates_df) == 0:
-        raise ValueError("坐标数据为空，无法生成ArcGIS输出")
+        raise ValueError('Coordinate data are empty; ArcGIS output cannot be generated')
     if output_path:
         output_dir = os.path.dirname(output_path)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir, exist_ok=True)
-            logger.info(f"已创建输出目录: {output_dir}")
+            logger.info(f"Created output directory: {output_dir}")
     arcgis_df = coordinates_df.copy()
     arcgis_df["QE_score"] = qe_scores
     retry_count = 0
@@ -5848,20 +5755,20 @@ def generate_arcgis_output(coordinates_df, qe_scores, output_path=None):
     while retry_count < max_retries:
         try:
             _localize_dataframe_headers(arcgis_df).to_csv(output_path, index=False, encoding='utf-8-sig')
-            logger.info(f"成矿元素ArcGIS文件已保存到 {output_path}")
+            logger.info(f"Mineral-element ArcGIS file saved to {output_path}")
             break
         except PermissionError as e:
             retry_count += 1
-            logger.warning(f"导出ArcGIS文件失败（权限错误），正在重试 ({retry_count}/{max_retries}): {e}")
+            logger.warning(f"Failed to export the ArcGIS file due to a permission error. Retrying ({retry_count}/{max_retries}): {e}")
             if retry_count == max_retries:
                 base_name, ext = os.path.splitext(output_path)
                 backup_path = f"{base_name}_{int(time.time())}{ext}"
                 _localize_dataframe_headers(arcgis_df).to_csv(backup_path, index=False, encoding='utf-8-sig')
-                logger.warning(f"使用备用文件名保存: {backup_path}")
+                logger.warning(f"Saved with a fallback filename: {backup_path}")
                 break
             time.sleep(1)
         except Exception as e:
-            logger.error(f"导出ArcGIS文件失败: {e}")
+            logger.error(f"Failed to export the ArcGIS file: {e}")
             raise
     return arcgis_df
 
@@ -5874,13 +5781,13 @@ def plot_anomaly_map(raw_data, qe_scores, title, output_path=None):
         output_dir = os.path.abspath(OUTPUT_DIR)
         output_filename = "mineral_anomaly_map.png"
     if generate_prediction_map_idw is None:
-        raise ImportError("无法导入输出智能体绘图函数generate_prediction_map_idw")
+        raise ImportError('Failed to import the result-output plotting function `generate_prediction_map_idw`')
     qe_arr = np.asarray(qe_scores, dtype=float)
     if qe_arr.ndim != 1:
         qe_arr = qe_arr.reshape(-1)
     n = min(len(raw_data), int(qe_arr.shape[0]))
     if n <= 0:
-        raise ValueError("无法绘图：输入数据为空")
+        raise ValueError('Plotting failed because the input data are empty')
     probs = qe_arr[:n].tolist()
     high_potential_indices = []
     map_path = generate_prediction_map_idw(
@@ -5893,8 +5800,8 @@ def plot_anomaly_map(raw_data, qe_scores, title, output_path=None):
         title=title,
     )
     if not map_path:
-        raise RuntimeError("调用输出智能体绘图逻辑失败，未生成图件")
-    logger.info(f"成矿元素异常图已保存到 {map_path}")
+        raise RuntimeError('The result-output plotting routine failed and no figure was generated')
+    logger.info(f"Mineral-element anomaly map saved to {map_path}")
 
 
 def plot_youden_prospecting_target_map(
@@ -5906,16 +5813,16 @@ def plot_youden_prospecting_target_map(
 ) -> Dict[str, Any]:
     """Render a categorical full-region target map using the maximum-Youden QE threshold."""
     if not isinstance(raw_data, pd.DataFrame) or raw_data.empty:
-        raise ValueError("无法生成Youden靶区图：输入数据为空")
+        raise ValueError('Cannot generate the Youden target map: input data are empty')
     score_arr = np.asarray(qe_scores, dtype=float).reshape(-1)
     truth_arr = np.asarray(y_true).reshape(-1)
     n = min(len(raw_data), score_arr.size, truth_arr.size)
     if n <= 0:
-        raise ValueError("无法生成Youden靶区图：分数或标签为空")
+        raise ValueError('Cannot generate the Youden target map: scores or labels are empty')
     frame = raw_data.iloc[:n].copy()
     x_col, y_col = _detect_coordinate_columns(frame)
     if not x_col or not y_col:
-        raise ValueError("无法生成Youden靶区图：未识别到坐标列")
+        raise ValueError('Cannot generate the Youden target map: coordinate columns were not identified')
     frame, coordinate_meta = _normalize_coordinates(
         frame,
         x_col=str(x_col),
@@ -5927,7 +5834,7 @@ def plot_youden_prospecting_target_map(
     lat = pd.to_numeric(frame["Latitude"], errors="coerce").to_numpy(dtype=float)
     valid = np.isfinite(lon) & np.isfinite(lat) & np.isfinite(score_arr[:n]) & np.isin(truth_arr[:n], [0, 1])
     if not np.any(valid):
-        raise ValueError("无法生成Youden靶区图：没有同时具备坐标、QE和标签的样本")
+        raise ValueError('Cannot generate the Youden target map: no samples have valid coordinates, QE scores, and labels together')
     point_data = pd.DataFrame(
         {
             "Longitude": lon[valid],
@@ -6027,7 +5934,7 @@ def plot_youden_prospecting_target_map(
         "caution": "Threshold selection and evaluation use the same full-region labels; this is retrospective rather than held-out evaluation.",
     }
     _atomic_write_text(metrics_json, json.dumps(metrics_payload, ensure_ascii=False, indent=2) + "\n")
-    logger.info(f"最大Youden靶区图已保存到 {output_abs} (threshold={threshold:.6f}, J={youden_index:.4f})")
+    logger.info(f"Maximum-Youden target map saved to {output_abs} (threshold={threshold:.6f}, J={youden_index:.4f})")
     return {
         **metrics_payload,
         "map_path": output_abs,
@@ -6039,40 +5946,40 @@ def plot_youden_prospecting_target_map(
 
 def load_data(mineral_shp_path, sample_csv_path):
     if gpd is None or Point is None:
-        raise ImportError("geopandas/shapely未安装，无法进行ROC分析")
+        raise ImportError('`geopandas`/`shapely` are not installed, so ROC analysis cannot be performed')
     if not os.path.exists(mineral_shp_path):
-        raise FileNotFoundError(f"矿点shp文件不存在：{mineral_shp_path}")
+        raise FileNotFoundError(f"Mineral-occurrence shapefile does not exist: {mineral_shp_path}")
     if not os.path.exists(sample_csv_path):
-        raise FileNotFoundError(f"样本CSV文件不存在：{sample_csv_path}")
+        raise FileNotFoundError(f"Sample CSV file does not exist: {sample_csv_path}")
     try:
         mineral_gdf = gpd.read_file(mineral_shp_path)
-        logger.info(f"矿点数据加载成功：共{len(mineral_gdf)}个已知矿点")
-        logger.info(f"矿点数据坐标系：{mineral_gdf.crs}")
+        logger.info(f"Mineral-occurrence data loaded successfully: {len(mineral_gdf)} known occurrences")
+        logger.info(f"Mineral-occurrence CRS: {mineral_gdf.crs}")
     except Exception as e:
-        raise RuntimeError(f"矿点shp文件读取失败：{str(e)}") from e
+        raise RuntimeError(f"Failed to read the mineral-occurrence shapefile: {str(e)}") from e
     try:
         sample_df = pd.read_csv(sample_csv_path)
-        logger.info(f"样本数据加载成功：共{len(sample_df)}个样本点")
-        logger.info(f"样本数据列名：{sample_df.columns.tolist()}")
+        logger.info(f"Sample data loaded successfully: {len(sample_df)} sample points")
+        logger.info(f"Sample-data columns: {sample_df.columns.tolist()}")
     except Exception as e:
-        raise RuntimeError(f"样本CSV文件读取失败：{str(e)}") from e
+        raise RuntimeError(f"Failed to read the sample CSV file: {str(e)}") from e
     x_col = "X"
     y_col = "Y"
     qe_score_col = "QE_score"
     required_cols = [x_col, y_col, qe_score_col]
     missing_cols = [col for col in required_cols if col not in sample_df.columns]
     if missing_cols:
-        raise ValueError(f"样本数据缺少必要列：{missing_cols}，请检查CSV文件列名")
+        raise ValueError(f"Sample data are missing required columns: {missing_cols}. Please check the CSV headers.")
     sample_gdf = gpd.GeoDataFrame(
         sample_df,
         geometry=[Point(xy) for xy in zip(sample_df[x_col], sample_df[y_col])],
         crs=mineral_gdf.crs
     )
     sample_gdf = sample_gdf.rename(columns={qe_score_col: "qe_score"})
-    logger.info("📊 QE异常分数统计：")
-    logger.info(f"   - 最小值：{sample_gdf['qe_score'].min():.4f}")
-    logger.info(f"   - 最大值：{sample_gdf['qe_score'].max():.4f}")
-    logger.info(f"   - 平均值：{sample_gdf['qe_score'].mean():.4f}")
+    logger.info('QE anomaly-score statistics:')
+    logger.info(f"   - Minimum: {sample_gdf['qe_score'].min():.4f}")
+    logger.info(f"   - Maximum: {sample_gdf['qe_score'].max():.4f}")
+    logger.info(f"   - Mean: {sample_gdf['qe_score'].mean():.4f}")
     return mineral_gdf, sample_gdf
 
 
@@ -6083,22 +5990,22 @@ def generate_sample_labels(mineral_gdf, sample_gdf, buffer_dist=1000):
     sample_gdf["is_mineral"] = sample_gdf.geometry.within(union_buffer).astype(int)
     pos_count = sample_gdf["is_mineral"].sum()
     neg_count = len(sample_gdf) - pos_count
-    logger.info("\n📊 样本标签统计：")
-    logger.info(f"   - 正样本（矿点缓冲区范围内）：{pos_count} 个（占比{pos_count / len(sample_gdf) * 100:.2f}%）")
-    logger.info(f"   - 负样本（矿点缓冲区范围外）：{neg_count} 个（占比{neg_count / len(sample_gdf) * 100:.2f}%）")
+    logger.info('\nSample-label statistics:')
+    logger.info(f"   - Positive samples (within mineral-buffer zones): {pos_count} ({pos_count / len(sample_gdf) * 100:.2f}%)")
+    logger.info(f"   - Negative samples (outside mineral-buffer zones): {neg_count} ({neg_count / len(sample_gdf) * 100:.2f}%)")
     if pos_count == 0:
-        logger.warning("\n⚠️  警告：未检测到矿点缓冲区范围内的样本点！")
-        logger.warning(f"   建议：1. 确认坐标系统一致性；2. 调整buffer_dist参数（当前为{buffer_dist}）")
+        logger.warning('\nWarning: no sample points were detected inside the mineral-buffer zones')
+        logger.warning(f"   Recommendation: 1. verify CRS consistency; 2. adjust the buffer_dist parameter (current value: {buffer_dist})")
     labeled_data_path = os.path.join(OUTPUT_DIR, "labeled_sample_data.csv")
     _localize_dataframe_headers(sample_gdf).to_csv(labeled_data_path, index=False)
-    logger.info(f"💾 带标签的样本数据已保存至：{labeled_data_path}")
+    logger.info(f"Labeled sample data saved to: {labeled_data_path}")
     sample_gdf["is_original"] = True
     return sample_gdf
 
 
 def apply_smote_oversampling(sample_gdf):
     if SMOTE is None or gpd is None or Point is None:
-        raise ImportError("imblearn/geopandas/shapely未安装，无法进行SMOTE过采样")
+        raise ImportError('`imblearn`/`geopandas`/`shapely` are not installed, so SMOTE oversampling cannot be performed')
     X = sample_gdf[["X", "Y", "qe_score"]].values
     y = sample_gdf["is_mineral"].values
     n_original_samples = len(sample_gdf)
@@ -6113,16 +6020,16 @@ def apply_smote_oversampling(sample_gdf):
         geometry=[Point(xy) for xy in zip(resampled_df["X"], resampled_df["Y"])],
         crs=sample_gdf.crs
     )
-    logger.info("📊 SMOTE过采样后样本统计：")
-    logger.info(f"   - 总样本数：{len(resampled_gdf)}（原始样本：{n_original_samples}，合成样本：{len(resampled_gdf)-n_original_samples}）")
-    logger.info(f"   - 正样本数：{resampled_gdf['is_mineral'].sum()}")
-    logger.info(f"   - 负样本数：{len(resampled_gdf) - resampled_gdf['is_mineral'].sum()}")
+    logger.info('Sample statistics after SMOTE oversampling:')
+    logger.info(f"   - Total samples: {len(resampled_gdf)} (original: {n_original_samples}, synthetic: {len(resampled_gdf)-n_original_samples})")
+    logger.info(f"   - Positive samples: {resampled_gdf['is_mineral'].sum()}")
+    logger.info(f"   - Negative samples: {len(resampled_gdf) - resampled_gdf['is_mineral'].sum()}")
     return resampled_gdf
 
 
 def calculate_roc_auc_metrics(sample_gdf):
     if roc_curve is None or auc is None or precision_recall_curve is None or average_precision_score is None:
-        raise ImportError("sklearn.metrics未完整安装，无法进行ROC分析")
+        raise ImportError('`sklearn.metrics` is not fully available, so ROC analysis cannot be performed')
     y_true = sample_gdf["is_mineral"].values
     y_score = sample_gdf["qe_score"].values
     fpr, tpr, thresholds = roc_curve(y_true, y_score)
@@ -6185,8 +6092,8 @@ def plot_and_save_roc_curve(metrics, save_dir="results"):
     pr_save_path = os.path.join(save_dir, "mineral_pr_curve.png")
     plt.savefig(pr_save_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close()
-    logger.info(f"ROC曲线已保存至: {roc_save_path}")
-    logger.info(f"PR曲线已保存至: {pr_save_path}")
+    logger.info(f"ROC curve saved to: {roc_save_path}")
+    logger.info(f"PR curve saved to: {pr_save_path}")
 
 
 def find_optimal_threshold(metrics, method="youden"):
@@ -6195,7 +6102,7 @@ def find_optimal_threshold(metrics, method="youden"):
         best_idx = np.argmax(youden_index)
         best_threshold = metrics["thresholds"][best_idx]
         best_score = youden_index[best_idx]
-        logger.info(f"最佳阈值(Youden Index)：{best_threshold:.4f}, Youden指数={best_score:.4f}")
+        logger.info(f"Best threshold (Youden Index): {best_threshold:.4f}, Youden score={best_score:.4f}")
         return best_threshold
     if method == "f1":
         precision = metrics["precision"]
@@ -6204,9 +6111,9 @@ def find_optimal_threshold(metrics, method="youden"):
         best_idx = np.argmax(f1_scores)
         best_threshold = metrics["thresholds"][best_idx]
         best_score = f1_scores[best_idx]
-        logger.info(f"最佳阈值(F1 Score)：{best_threshold:.4f}, F1={best_score:.4f}")
+        logger.info(f"Best threshold (F1 Score): {best_threshold:.4f}, F1={best_score:.4f}")
         return best_threshold
-    raise ValueError("未知阈值优化方法")
+    raise ValueError('Unknown threshold-optimization method')
 
 
 def run_mineral_qe_analysis_from_df(
@@ -6263,7 +6170,7 @@ def run_mineral_qe_analysis_from_df(
                 continue
             idx = [som_elements_full.index(str(e)) for e in elements]
             data = som_input_full[:, idx].copy()
-            logger.info("QE分析已复用SOM输入矩阵，确保与SOM训练前处理严格一致")
+            logger.info('QE analysis reused the SOM input matrix to remain strictly consistent with the preprocessing applied before SOM training')
             break
         except Exception:
             continue
@@ -6294,7 +6201,7 @@ def run_mineral_qe_analysis_from_df(
     correlation_csv_path = os.path.join(out_dir, "element_qe_correlation.csv")
     _localize_dataframe_headers(correlation_df).to_csv(correlation_csv_path, encoding="utf-8-sig")
     plot_df = coords_df.copy()
-    possible_label_cols = ["Ore", "label", "target", "deposit", "矿床", "标签", "label_encoded", "target_encoded", "labeled", "has_deposit", "is_deposit"]
+    possible_label_cols = ["Ore", "label", "target", "deposit", '\u77ff\u5e8a', '\u6807\u7b7e', "label_encoded", "target_encoded", "labeled", "has_deposit", "is_deposit"]
     label_col = None
     for col in possible_label_cols:
         if col in df.columns:
@@ -6317,7 +6224,7 @@ def run_mineral_qe_analysis_from_df(
     roc_result = {"enabled": False, "error": "", "source": "", "roc_curve": "", "pr_curve": ""}
     youden_target_map = {
         "enabled": False,
-        "error": "尚未从全区原始标签与QE得分计算最大Youden阈值",
+        "error": 'The maximum-Youden threshold has not yet been calculated from the original full-region labels and QE scores',
         "map_path": "",
     }
     try:
@@ -6358,11 +6265,11 @@ def run_mineral_qe_analysis_from_df(
                         "youden_confusion_matrix": youden_target_map["confusion_matrix"],
                         "youden_target_map": youden_target_map["map_path"],
                     }
-                    logger.info(f"已基于标签列 {label_col} 与 qe_scores 生成ROC/PR图")
+                    logger.info(f"Generated ROC/PR curves using label column {label_col} and qe_scores")
                 else:
                     roc_result = {
                         "enabled": False,
-                        "error": f"标签列 {label_col} 仅含单一类别，无法计算ROC",
+                        "error": f"Label column {label_col} contains only one class, so ROC cannot be computed",
                         "source": "label_col",
                         "label_col": str(label_col),
                         "roc_curve": "",
@@ -6371,7 +6278,7 @@ def run_mineral_qe_analysis_from_df(
             else:
                 roc_result = {
                     "enabled": False,
-                    "error": f"标签列 {label_col} 无有效数值，无法计算ROC",
+                    "error": f"Label column {label_col} contains no valid numeric values, so ROC cannot be computed",
                     "source": "label_col",
                     "label_col": str(label_col),
                     "roc_curve": "",

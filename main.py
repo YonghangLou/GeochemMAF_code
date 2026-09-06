@@ -169,118 +169,118 @@ def _atomic_write_text(path: str, content: str, *, encoding: str = "utf-8") -> s
 
 
 _EVAL_METRIC_KEY_ZH: dict[str, str] = {
-    "generated_at": "生成时间",
-    "schema_version": "结构版本",
-    "run": "运行",
+    "generated_at": 'Generated at',
+    "schema_version": 'Schema version',
+    "run": 'Run',
     "professional_evaluation": "Professional MAS Evaluation",
     "dimensions_0_1": "Dimension Scores (0-1)",
     "indicators_0_1": "Indicator Scores (0-1)",
     "raw_metrics": "Raw Metrics",
     "professional_scoring_config": "Professional Scoring Config",
-    "output_dir": "输出目录",
-    "data_path": "数据文件路径",
-    "study_area_location": "研究区地点",
-    "target_deposit_type": "目标矿种",
-    "phase": "阶段",
-    "runtime_seconds": "耗时秒数",
-    "runtime_human": "耗时",
-    "governance_run_id": "治理运行ID",
-    "config": "运行配置",
-    "interaction_mode": "交互模式",
-    "learning_mode": "学习方式",
-    "reflection_enabled": "反思开关",
-    "reflection_max_rounds": "反思最大轮次",
-    "structured_output_enabled": "结构化输出开关",
-    "outcome": "结果",
+    "output_dir": 'Output dir',
+    "data_path": 'Data path',
+    "study_area_location": 'Study area location',
+    "target_deposit_type": 'Target deposit type',
+    "phase": 'Phase',
+    "runtime_seconds": 'Runtime seconds',
+    "runtime_human": 'Runtime human',
+    "governance_run_id": 'Governance run id',
+    "config": 'Config',
+    "interaction_mode": 'Interaction mode',
+    "learning_mode": 'Learning mode',
+    "reflection_enabled": 'Reflection enabled',
+    "reflection_max_rounds": 'Reflection max rounds',
+    "structured_output_enabled": 'Structured output enabled',
+    "outcome": 'Outcome',
     "task_outcome": "Task Outcome",
     "collaboration": "Collaboration",
     "governance_control": "Governance Control",
     "reliability": "Reliability",
     "efficiency": "Efficiency",
-    "tsr": "任务成功率",
-    "acr": "产出物完成率",
+    "tsr": 'Tsr',
+    "acr": 'Acr',
     "task_success": "Task Success",
     "artifact_completeness": "Artifact Completeness",
-    "model_quality": "模型质量",
-    "overfit_penalty": "过拟合惩罚",
-    "label_profile": "标签概况",
-    "label_col": "标签列",
-    "known_count": "已知标签样本数",
-    "missing_count": "缺失标签样本数",
-    "pos_count": "正例数",
-    "neg_count": "负例数",
-    "pos_rate": "正例比例",
-    "calibration": "校准指标",
-    "brier": "Brier分数",
-    "log_loss": "对数损失",
-    "ece_10": "ECE(10箱)",
-    "mce_10": "MCE(10箱)",
-    "ranking": "排序指标",
-    "precision_at_1pct": "Top1%精度",
-    "recall_at_1pct": "Top1%召回",
-    "precision_at_poscount": "Top正例数精度",
-    "recall_at_poscount": "Top正例数召回",
-    "process": "过程",
-    "checks_pass_rate": "检查通过率",
+    "model_quality": 'Model quality',
+    "overfit_penalty": 'Overfit penalty',
+    "label_profile": 'Label profile',
+    "label_col": 'Label col',
+    "known_count": 'Known count',
+    "missing_count": 'Missing count',
+    "pos_count": 'Pos count',
+    "neg_count": 'Neg count',
+    "pos_rate": 'Positive Rate',
+    "calibration": 'Calibration Metrics',
+    "brier": 'Brier Score',
+    "log_loss": 'Log Loss',
+    "ece_10": 'ECE (10 bins)',
+    "mce_10": 'MCE (10 bins)',
+    "ranking": 'Ranking Metrics',
+    "precision_at_1pct": 'Top 1% Precision',
+    "recall_at_1pct": 'Top 1% Recall',
+    "precision_at_poscount": 'Top Pos-count Precision',
+    "recall_at_poscount": 'Top Pos-count Recall',
+    "process": 'Process',
+    "checks_pass_rate": 'Checks Pass Rate',
     "verification_pass": "Verification Pass",
-    "checks": "检查汇总",
-    "error_fail": "错误失败数",
-    "error_total": "错误总数",
-    "warn_fail": "警告失败数",
-    "warn_total": "警告总数",
-    "rework_rate": "返工率",
-    "budget_utilization": "预算利用率",
-    "decision_stability": "决策稳定性",
+    "checks": 'Checks',
+    "error_fail": 'Error fail',
+    "error_total": 'Error total',
+    "warn_fail": 'Warn fail',
+    "warn_total": 'Warn total',
+    "rework_rate": 'Rework Rate',
+    "budget_utilization": 'Budget Utilization',
+    "decision_stability": 'Decision Stability',
     "decision_consistency": "Decision Consistency",
-    "hitl_intervention_rate": "人工介入率",
+    "hitl_intervention_rate": 'HITL Intervention Rate',
     "rework_control": "Rework Control",
-    "mechanism": "机制",
-    "sofr": "结构化失败率",
+    "mechanism": 'Mechanism',
+    "sofr": 'Structured Failure Rate',
     "structured_reliability": "Structured Reliability",
     "repair_resilience": "Repair Resilience",
-    "json_repair_success_rate": "JSON修复成功率",
-    "reflection_intensity": "反思强度",
-    "eval_stats_totals": "统计合计",
-    "decide_calls": "决策调用次数",
-    "decide_json_calls": "结构化调用次数",
-    "reflection_text_rounds": "反思文本轮次",
-    "structured_parse_failures": "结构化解析失败数",
-    "json_repair_attempts": "JSON修复尝试数",
-    "json_repair_successes": "JSON修复成功数",
-    "decide_calls_total": "决策调用总数",
-    "decide_json_calls_total": "结构化调用总数",
-    "reflection_text_rounds_total": "反思文本轮次总数",
-    "structured_parse_failures_total": "结构化解析失败总数",
-    "json_repair_attempts_total": "JSON修复尝试总数",
-    "json_repair_successes_total": "JSON修复成功总数",
-    "domain": "领域",
-    "high_potential_ratio": "高潜力占比",
-    "confidence_level": "置信度等级",
-    "geo_pred_consistency": "地质-预测一致性",
+    "json_repair_success_rate": 'JSON Repair Success Rate',
+    "reflection_intensity": 'Reflection Intensity',
+    "eval_stats_totals": 'Eval stats totals',
+    "decide_calls": 'Decision Calls',
+    "decide_json_calls": 'Structured Calls',
+    "reflection_text_rounds": 'Reflection Text Rounds',
+    "structured_parse_failures": 'Structured parse failures',
+    "json_repair_attempts": 'Json repair attempts',
+    "json_repair_successes": 'Json repair successes',
+    "decide_calls_total": 'Decide calls total',
+    "decide_json_calls_total": 'Decide json calls total',
+    "reflection_text_rounds_total": 'Reflection text rounds total',
+    "structured_parse_failures_total": 'Structured parse failures total',
+    "json_repair_attempts_total": 'Json repair attempts total',
+    "json_repair_successes_total": 'Json repair successes total',
+    "domain": 'Domain',
+    "high_potential_ratio": 'High potential ratio',
+    "confidence_level": 'Confidence level',
+    "geo_pred_consistency": 'Geo pred consistency',
     "predictive_quality": "Predictive Quality",
     "calibration_quality": "Calibration Quality",
-    "data_profile": "数据概况",
-    "rows": "行数",
-    "cols": "列数",
-    "numeric_cols": "数值列数",
-    "missing_cells": "缺失单元格数",
-    "duplicate_rows": "重复行数",
-    "coord_x": "X坐标列",
-    "coord_y": "Y坐标列",
-    "agent_eval_stats": "智能体统计",
-    "Agent": "智能体",
-    "artifacts": "产物",
-    "expected": "期望产物",
-    "output_paths": "产物路径",
-    "comprehensive_report": "综合报告",
-    "predictions_data": "预测表",
-    "anomaly_analysis": "异常分析",
-    "feature_analysis_selection_doc": "特征分析与选择说明",
-    "target_element_selection_doc": "目标元素筛选说明",
-    "feature_importance": "特征重要性",
-    "json_results": "全链路JSON",
-    "prediction_map": "预测图",
-    "token_usage": "Token使用",
+    "data_profile": 'Data profile',
+    "rows": 'Rows',
+    "cols": 'Cols',
+    "numeric_cols": 'Numeric cols',
+    "missing_cells": 'Missing cells',
+    "duplicate_rows": 'Duplicate rows',
+    "coord_x": 'Coord x',
+    "coord_y": 'Coord y',
+    "agent_eval_stats": 'Agent eval stats',
+    "Agent": 'Agent',
+    "artifacts": 'Artifacts',
+    "expected": 'Expected',
+    "output_paths": 'Output paths',
+    "comprehensive_report": 'Comprehensive report',
+    "predictions_data": 'Predictions data',
+    "anomaly_analysis": 'Anomaly analysis',
+    "feature_analysis_selection_doc": 'Feature analysis selection doc',
+    "target_element_selection_doc": 'Target element selection doc',
+    "feature_importance": 'Feature importance',
+    "json_results": 'Json results',
+    "prediction_map": 'Prediction map',
+    "token_usage": 'Token usage',
     "agent_coverage": "Agent Coverage",
     "workflow_progression": "Workflow Progression",
     "collaboration_balance": "Collaboration Balance",
@@ -290,34 +290,34 @@ _EVAL_METRIC_KEY_ZH: dict[str, str] = {
     "route_transitions": "Route Transitions",
     "route_revisits": "Route Revisits",
     "active_roles": "Active Roles",
-    "Total Tokens": "总Token数",
-    "Prompt Tokens": "输入Token数",
-    "Completion Tokens": "输出Token数",
-    "Total Cost (CNY)": "总成本(CNY)",
-    "Successful Requests": "成功请求数",
-    "Request History Count": "请求历史条数",
-    "score": "评分",
-    "overall": "总分(0-100)",
-    "subscores_0_1": "子分(0-1)",
-    "signals_0_1": "信号得分(0-1)",
-    "scoring_config": "评分配置",
-    "mechanism_weights": "机制权重",
-    "outcome_weights": "结果权重",
-    "overall_weights": "总权重",
-    "process_weights": "过程权重",
-    "targets": "目标阈值",
+    "Total Tokens": 'Total tokens',
+    "Prompt Tokens": 'Prompt tokens',
+    "Completion Tokens": 'Completion tokens',
+    "Total Cost (CNY)": 'Total cost (cny)',
+    "Successful Requests": 'Successful requests',
+    "Request History Count": 'Request history count',
+    "score": 'Score',
+    "overall": 'Overall Score (0-100)',
+    "subscores_0_1": 'Subscores 0 1',
+    "signals_0_1": 'Signals 0 1',
+    "scoring_config": 'Scoring config',
+    "mechanism_weights": 'Mechanism weights',
+    "outcome_weights": 'Outcome weights',
+    "overall_weights": 'Overall weights',
+    "process_weights": 'Process weights',
+    "targets": 'Targets',
     "dimension_weights": "Dimension Weights",
-    "budget_score": "预算得分",
-    "rework_score": "返工得分",
-    "structured_output_score": "结构化输出得分",
-    "reflection_score": "反思得分",
-    "token_efficiency": "Token效率",
-    "budget_utilization_bad": "预算利用率差阈值",
-    "budget_utilization_good": "预算利用率好阈值",
-    "reflection_intensity_good": "反思强度好阈值",
-    "rework_rate_good": "返工率好阈值",
-    "structured_failure_rate_good": "结构化失败率好阈值",
-    "tokens_per_run_good": "单次运行Token目标",
+    "budget_score": 'Budget score',
+    "rework_score": 'Rework score',
+    "structured_output_score": 'Structured output score',
+    "reflection_score": 'Reflection score',
+    "token_efficiency": 'Token efficiency',
+    "budget_utilization_bad": 'Budget utilization bad',
+    "budget_utilization_good": 'Budget utilization good',
+    "reflection_intensity_good": 'Reflection intensity good',
+    "rework_rate_good": 'Rework rate good',
+    "structured_failure_rate_good": 'Structured failure rate good',
+    "tokens_per_run_good": 'Tokens per run good',
     "ece_good": "ECE Good Threshold",
     "ece_bad": "ECE Bad Threshold",
     "brier_bad": "Brier Bad Threshold",
@@ -363,7 +363,7 @@ def _format_eval_metrics_markdown(metrics: dict[str, Any]) -> str:
         return str(v)
 
     def _table(rows: list[tuple[str, Any]]) -> str:
-        lines = ["| 项 | 值 |", "|---|---|"]
+        lines = ['|---|---|', "|---|---|"]
         for k, v in rows:
             kk = _eval_metric_label(str(k).replace("\n", " ").strip(), include_raw=True)
             vv = _fmt(v).replace("\n", " ").strip()
@@ -715,7 +715,7 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
         import matplotlib.pyplot as plt
     except Exception as e:
         try:
-            logger.warning(f"评测指标可视化依赖导入失败: {e}")
+            logger.warning(f"Failed to import evaluation visualization dependencies: {e}")
         except Exception:
             pass
         return {}
@@ -762,12 +762,12 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
     def label_agent(k: Any) -> str:
         raw = str(k).strip()
         agent_labels = {
-            "DataScienceExpertAgent": ("数据科学专家智能体", "DataScienceExpertAgent"),
-            "GeologyExpertAgent": ("地质专家智能体", "GeologyExpertAgent"),
-            "ResultOutputAgent": ("综合报告智能体", "ResultOutputAgent"),
-            "data_science_expert": ("数据科学专家智能体", "data_science_expert"),
-            "geology_analysis": ("地质专家智能体", "geology_analysis"),
-            "result_output": ("综合报告智能体", "result_output"),
+            "DataScienceExpertAgent": ('data_science_expert', "DataScienceExpertAgent"),
+            "GeologyExpertAgent": ('geology_analysis', "GeologyExpertAgent"),
+            "ResultOutputAgent": ('result_output', "ResultOutputAgent"),
+            "data_science_expert": ('data_science_expert', "data_science_expert"),
+            "geology_analysis": ('geology_analysis', "geology_analysis"),
+            "result_output": ('result_output', "result_output"),
         }
         if raw in agent_labels:
             zh_text, en_text = agent_labels[raw]
@@ -777,12 +777,12 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
     def label_overview(k: Any) -> str:
         raw = str(k).strip()
         overview_labels = {
-            "overall": ("总分", "Overall Score"),
-            "task_outcome": ("任务结果", "Task Outcome"),
-            "collaboration": ("协作交接", "Collaboration"),
-            "governance_control": ("治理控制", "Governance Control"),
-            "reliability": ("可靠性", "Reliability"),
-            "efficiency": ("效率", "Efficiency"),
+            "overall": ('Overall Score', "Overall Score"),
+            "task_outcome": ('Task Outcome', "Task Outcome"),
+            "collaboration": ('Collaboration', "Collaboration"),
+            "governance_control": ('Governance Control', "Governance Control"),
+            "reliability": ('Reliability', "Reliability"),
+            "efficiency": ('Efficiency', "Efficiency"),
         }
         if raw in overview_labels:
             zh_text, en_text = overview_labels[raw]
@@ -798,7 +798,7 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
             return path
         except Exception as e:
             try:
-                logger.warning(f"{_localize_text('评测指标图保存失败', lang=lang)}({filename}): {e}")
+                logger.warning(f"{_localize_text('Failed to save evaluation figure', lang=lang)}({filename}): {e}")
             except Exception:
                 pass
             return None
@@ -836,10 +836,10 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
             process = _as_float(subs.get("process"))
             mechanism = _as_float(subs.get("mechanism"))
             items = [
-                (_localize_text("总分(0-100)", lang=lang), overall),
-                (_localize_text("结果(×100)", lang=lang), (outcome * 100.0) if outcome is not None else None),
-                (_localize_text("过程(×100)", lang=lang), (process * 100.0) if process is not None else None),
-                (_localize_text("机制(×100)", lang=lang), (mechanism * 100.0) if mechanism is not None else None),
+                (_localize_text('Overall Score (0-100)', lang=lang), overall),
+                (_localize_text('Outcome (×100)', lang=lang), (outcome * 100.0) if outcome is not None else None),
+                (_localize_text('Process (×100)', lang=lang), (process * 100.0) if process is not None else None),
+                (_localize_text('Mechanism (×100)', lang=lang), (mechanism * 100.0) if mechanism is not None else None),
             ]
         labels = [k for k, v in items if v is not None]
         values = [float(v) for _, v in items if v is not None]
@@ -850,8 +850,8 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
             palette = ["#4c78a8", "#72b7b2", "#f58518", "#e45756", "#54a24b", "#b279a2", "#ff9da6"]
             ax.bar(labels, values, color=palette[: len(values)])
             ax.set_ylim(0, 100)
-            ax.set_ylabel(_localize_text("得分", lang=lang), fontsize=16)
-            ax.set_title(_localize_text("评测得分概览", lang=lang), pad=18, fontsize=16)
+            ax.set_ylabel(_localize_text('Score', lang=lang), fontsize=16)
+            ax.set_title(_localize_text('Evaluation Score Overview', lang=lang), pad=18, fontsize=16)
             ax.tick_params(axis="x", rotation=20, labelsize=16)
             ax.tick_params(axis="y", labelsize=16)
             for i, v in enumerate(values):
@@ -883,8 +883,8 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
                 ax = fig.add_subplot(111)
                 ax.barh(labels, values, color="#54a24b")
                 ax.set_xlim(0, 1.0)
-                ax.set_xlabel(_localize_text("得分(0-1)", lang=lang))
-                ax.set_title(_localize_text("得分信号(0-1)", lang=lang))
+                ax.set_xlabel(_localize_text('Score (0-1)', lang=lang))
+                ax.set_title(_localize_text('Score Signals (0-1)', lang=lang))
                 for i, v in enumerate(values):
                     ax.text(min(v + 0.02, 0.98), i, f"{v:.3f}", va="center", fontsize=9)
                 p = _save(fig, "score_signals.png")
@@ -908,8 +908,8 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
             ax = fig.add_subplot(111)
             ax.bar(
                 [
-                    _get_bilingual_text("正例", "Positive", lang=lang),
-                    _get_bilingual_text("负例", "Negative", lang=lang),
+                    _get_bilingual_text('Positive', "Positive", lang=lang),
+                    _get_bilingual_text('Negative', "Negative", lang=lang),
                 ],
                 [pos, neg],
                 color=["#e45756", "#4c78a8"],
@@ -919,15 +919,15 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
             except Exception:
                 pass
             pos_rate = _as_float(lp.get("pos_rate"))
-            title = _localize_text("标签分布", lang=lang)
+            title = _localize_text('Label Distribution', lang=lang)
             if pos_rate is None:
-                ratio_name = _get_bilingual_text("正例比例", "Positive Rate", lang=lang)
+                ratio_name = _get_bilingual_text('Positive Rate', "Positive Rate", lang=lang)
                 title += f" ({ratio_name}={pos / (pos + neg):.4f})"
             else:
-                ratio_name = _get_bilingual_text("正例比例", "Positive Rate", lang=lang)
+                ratio_name = _get_bilingual_text('Positive Rate', "Positive Rate", lang=lang)
                 title += f" ({ratio_name}={pos_rate:.4f})"
             ax.set_title(title)
-            ax.set_ylabel(_localize_text("样本数（对数刻度）", lang=lang))
+            ax.set_ylabel(_localize_text('Sample Count (Log Scale)', lang=lang))
             p = _save(fig, "label_profile.png")
             if p:
                 out["eval_metrics_fig_label_profile"] = p
@@ -965,13 +965,13 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
             ax2 = fig.add_subplot(122)
             if cal_labels:
                 ax1.bar(cal_labels, cal_vals, color="#72b7b2")
-                ax1.set_title(_localize_text("校准指标", lang=lang))
+                ax1.set_title(_localize_text('Calibration Metrics', lang=lang))
                 ax1.tick_params(axis="x", rotation=25)
             else:
                 ax1.axis("off")
             if rk_labels:
                 ax2.bar(rk_labels, rk_vals, color="#f58518")
-                ax2.set_title(_localize_text("排序指标", lang=lang))
+                ax2.set_title(_localize_text('Ranking Metrics', lang=lang))
                 ax2.tick_params(axis="x", rotation=25)
                 try:
                     ax2.set_ylim(0, 1.0)
@@ -1015,7 +1015,7 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
                 labels = [k for k, _ in proc_pairs]
                 values = [v for _, v in proc_pairs]
                 ax1.bar(labels, values, color="#4c78a8")
-                ax1.set_title(_localize_text("过程指标", lang=lang))
+                ax1.set_title(_localize_text('Process Metrics', lang=lang))
                 ax1.tick_params(axis="x", rotation=25)
                 try:
                     ax1.set_ylim(0, 1.0)
@@ -1027,7 +1027,7 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
                 labels = [k for k, _ in mech_pairs]
                 values = [v for _, v in mech_pairs]
                 ax2.bar(labels, values, color="#e45756")
-                ax2.set_title(_localize_text("机制指标", lang=lang))
+                ax2.set_title(_localize_text('Mechanism Metrics', lang=lang))
                 ax2.tick_params(axis="x", rotation=25)
                 try:
                     ax2.set_ylim(0, 1.0)
@@ -1080,8 +1080,8 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
                     left = [left_val + float(val) for left_val, val in zip(left, vals)]
                 ax.set_yticks(y)
                 ax.set_yticklabels([label_agent(a) for a in agents])
-                ax.set_xlabel(_localize_text("次数", lang=lang))
-                ax.set_title(_localize_text("智能体调用统计", lang=lang))
+                ax.set_xlabel(_localize_text('Count', lang=lang))
+                ax.set_title(_localize_text('Agent Call Statistics', lang=lang))
                 ax.legend(loc="lower right")
                 p = _save(fig, "agent_stats.png")
                 if p:
@@ -1106,11 +1106,11 @@ def _generate_eval_metrics_figures(metrics: dict[str, Any], *, output_dir: str) 
             t_val = float(total) if total is not None else (p_val + c_val)
             fig = plt.figure(figsize=(8.8, 4.2))
             ax = fig.add_subplot(111)
-            ax.bar(["Token"], [p_val], label=_localize_text("输入(Prompt)", lang=lang), color="#4c78a8")
-            ax.bar(["Token"], [c_val], bottom=[p_val], label=_localize_text("输出(Completion)", lang=lang), color="#f58518")
-            ax.set_ylabel(_localize_text("Token数", lang=lang))
-            token_usage_title = _localize_text("Token使用情况", lang=lang)
-            total_name = _get_bilingual_text("总计", "Total", lang=lang)
+            ax.bar(["Token"], [p_val], label=_localize_text('Input (Prompt)', lang=lang), color="#4c78a8")
+            ax.bar(["Token"], [c_val], bottom=[p_val], label=_localize_text('Output (Completion)', lang=lang), color="#f58518")
+            ax.set_ylabel(_localize_text('Token Count', lang=lang))
+            token_usage_title = _localize_text('Token Usage', lang=lang)
+            total_name = _get_bilingual_text('Total', "Total", lang=lang)
             ax.set_title(f"{token_usage_title} ({total_name}={int(t_val) if t_val >= 0 else t_val})")
             ax.legend(loc="upper right")
             p = _save(fig, "token_usage.png")
@@ -1959,7 +1959,7 @@ def _resolve_workflow_imports():
     except Exception as e:
         errors.append(e)
     last = errors[-1] if errors else ImportError("unknown import error")
-    raise ImportError(f"无法导入工作流模块: {last}") from last
+    raise ImportError(f"Unable to import the workflow module: {last}") from last
 _TokenMonitor: Optional[type[Any]] = None
 try:
     from utils.token_counter import TokenMonitor as _TokenMonitor
@@ -1983,7 +1983,7 @@ except ImportError:
         pass
 load_data = _load_data
 def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="地球化学多智能体成矿潜力预测软件")
+    parser = argparse.ArgumentParser(description='Geochemical Multi-Agent Mineral Prospectivity Prediction System')
     default_data_path = os.path.join(os.path.dirname(__file__), "data", "data.csv")
     truthy = {"1", "true", "yes", "on"}
     falsy = {"0", "false", "no", "off"}
@@ -2024,52 +2024,52 @@ def parse_arguments() -> argparse.Namespace:
         reflection_rounds_default = 0
     if reflection_rounds_default > 3:
         reflection_rounds_default = 3
-    parser.add_argument("-d", "--data", type=str, default=default_data_path, help=f"数据文件路径 (默认: {default_data_path})")
-    parser.add_argument("-o", "--output", type=str, required=False, default="./output", help="输出目录路径 (默认: ./output)")
-    parser.add_argument("-v", "--verbose", action="store_true", help="启用详细输出")
-    parser.add_argument("--structured-output", action="store_true", default=env_enabled, help="启用结构化输出解析")
-    parser.add_argument("--no-structured-output", action="store_false", dest="structured_output", help="禁用结构化输出解析")
-    parser.add_argument("--reflection", action="store_true", default=reflection_enabled, help="启用反思与自修正机制")
-    parser.add_argument("--no-reflection", action="store_false", dest="reflection", help="禁用反思与自修正机制")
-    parser.add_argument("--reflection-max-rounds", type=int, default=reflection_rounds_default, help="反思与自修正最大轮数 (0-3)")
+    parser.add_argument("-d", "--data", type=str, default=default_data_path, help=f"Input data path (default: {default_data_path})")
+    parser.add_argument("-o", "--output", type=str, required=False, default="./output", help='Output directory path (default: ./output)')
+    parser.add_argument("-v", "--verbose", action="store_true", help='Enable verbose logging')
+    parser.add_argument("--structured-output", action="store_true", default=env_enabled, help='Enable structured output parsing')
+    parser.add_argument("--no-structured-output", action="store_false", dest="structured_output", help='Disable structured output parsing')
+    parser.add_argument("--reflection", action="store_true", default=reflection_enabled, help='Enable reflection and self-revision')
+    parser.add_argument("--no-reflection", action="store_false", dest="reflection", help='Disable reflection and self-revision')
+    parser.add_argument("--reflection-max-rounds", type=int, default=reflection_rounds_default, help='Maximum reflection rounds')
     parser.add_argument(
         "--learning-mode",
         choices=["unsupervised", "self_supervised", "supervised"],
         default="unsupervised",
-        help="SOM学习方式（默认：unsupervised）",
+        help='SOM learning mode (default: unsupervised)',
     )
-    parser.add_argument("--geology-four-stage-cot", action="store_true", default=False, help="开启地质解译四阶段CoT（默认关闭，关闭时仍输出最终地质解释）")
-    parser.add_argument("--som-all-elements", action="store_true", default=False, help="开启SOM全元素实验（默认关闭，仅运行筛选元素实验）")
-    parser.add_argument("--no-som-all-elements", action="store_false", dest="som_all_elements", help="关闭SOM全元素实验")
-    parser.add_argument("--auto-programming", action="store_true", default=False, help="开启数据科学智能体的自动编程能力")
+    parser.add_argument("--geology-four-stage-cot", action="store_true", default=False, help='Enable four-stage CoT geological interpretation (disabled by default; the final geological interpretation remains available when disabled)')
+    parser.add_argument("--som-all-elements", action="store_true", default=False, help='Enable the all-element SOM experiment (disabled by default; only the selected-element experiment runs by default)')
+    parser.add_argument("--no-som-all-elements", action="store_false", dest="som_all_elements", help='Disable the all-element SOM experiment')
+    parser.add_argument("--auto-programming", action="store_true", default=False, help='Enable automatic programming by the Data Science Expert Agent')
     parser.add_argument(
         "--som-use-raw-data",
         "--som-use-raw",
         action="store_true",
         default=False,
         dest="som_use_raw_data",
-        help="SOM使用原始数据作为输入（开启后使用原始数据；默认使用预处理后数据）",
+        help='Use raw data as SOM input when enabled (default: preprocessed data)',
     )
     parser.add_argument(
         "--no-som-use-raw-data",
         "--no-som-use-raw",
         action="store_false",
         dest="som_use_raw_data",
-        help="SOM不使用原始数据输入（使用预处理后数据）",
+        help='Use preprocessed data, rather than raw data, as SOM input',
     )
     parser.add_argument(
         "-a",
         "--study-area",
         type=str,
         required=False,
-        default="南岭成矿带",
-        help="研究区地点/区域信息（默认并固定为：南岭成矿带）",
+        default='Nanling Metallogenic Belt',
+        help='Study area information (default and fixed setting: Nanling Metallogenic Belt)',
     )
     parser.add_argument(
         "--api-key",
         type=str,
         default=(os.environ.get("LANGSMITH_API_KEY") or os.environ.get("LANGCHAIN_API_KEY")),
-        help="LangSmith API密钥，如未提供将尝试从环境变量获取",
+        help='LangSmith API key; falls back to environment variables when omitted',
     )
     parser.add_argument("-t", "--target", type=str, required=False, default=None, help="Target deposit type (e.g., Tungsten, Copper, Gold)")
     parser.add_argument(
@@ -2077,7 +2077,7 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         choices=["en", "zh"],
         default=_resolve_output_language(),
-        help="输出语言：en=英文(默认)，zh=中文",
+        help='Output language: en=English (default), zh=Chinese',
     )
     args, unknown = parser.parse_known_args()
     try:
@@ -2091,7 +2091,7 @@ def parse_arguments() -> argparse.Namespace:
     setattr(args, "reflection_max_rounds", rounds)
     if unknown and getattr(args, "verbose", False):
         _ensure_logging_configured(verbose=True)
-        logger.warning(f"忽略未识别的参数: {unknown}")
+        logger.warning(f"Ignoring unrecognized arguments: {unknown}")
     return args
 def _disable_langsmith_tracing(verbose: bool = False) -> None:
     os.environ["LANGCHAIN_TRACING_V2"] = "false"
@@ -2105,7 +2105,7 @@ def _disable_langsmith_tracing(verbose: bool = False) -> None:
             pass
     if verbose:
         _ensure_logging_configured(verbose=True)
-        logger.info("LangSmith tracing 已禁用")
+        logger.info('LangSmith tracing is disabled')
 def setup_langsmith(api_key: Optional[str] = None, project_name: str = "default", verbose: bool = False) -> bool:
     if not HAS_LANGSMITH:
         return False
@@ -2120,8 +2120,8 @@ def setup_langsmith(api_key: Optional[str] = None, project_name: str = "default"
         os.environ["LANGCHAIN_PROJECT"] = project_name
         if verbose:
             _ensure_logging_configured(verbose=True)
-            logger.info(f"成功导入langsmith模块，版本: {langsmith.__version__}")
-            logger.info(f"LangSmith跟踪已启用 (项目: {project_name})")
+            logger.info(f"Successfully imported langsmith, version: {langsmith.__version__}")
+            logger.info(f"LangSmith tracing enabled (project: {project_name})")
         return True
     return False
 def check_requirements() -> bool:
@@ -2147,17 +2147,17 @@ def check_requirements() -> bool:
             missing_packages.append(pip_name)
     if missing_packages:
         _ensure_logging_configured()
-        logger.error("缺少以下必要的Python包：")
+        logger.error('The following required Python packages are missing:')
         for package in missing_packages:
             logger.error(f"- {package}")
-        logger.info("请运行以下命令安装所有依赖：pip install -r requirements.txt")
+        logger.info('Install all dependencies with: pip install -r requirements.txt')
         return False
     return True
 def create_app():
     _, GeoChemistryWorkflow = _resolve_workflow_imports()
     workflow = GeoChemistryWorkflow()
     _ensure_logging_configured()
-    logger.info(f"工作流图已创建，类型: {type(workflow.workflow).__name__}")
+    logger.info(f"Workflow graph created, type: {type(workflow.workflow).__name__}")
     return workflow.workflow
 def main() -> None:
     if load_dotenv is not None:
@@ -2169,28 +2169,28 @@ def main() -> None:
             pass
     _ensure_logging_configured()
     logger.info("=" * 60)
-    logger.info("欢迎使用地球化学多智能体成矿潜力预测软件")
-    logger.info("基于LangGraph的多智能体地球化学数据分析平台")
+    logger.info('Welcome to the geochemical multi-agent mineral prospectivity prediction system')
+    logger.info('A LangGraph-based multi-agent platform for geochemical data analysis')
     logger.info("=" * 60)
     if not check_requirements():
-        logger.error("程序将在安装所有依赖后继续执行。")
+        logger.error('Install all dependencies before continuing execution.')
         sys.exit(1)
     args = parse_arguments()
     _ensure_logging_configured(verbose=bool(getattr(args, "verbose", False)))
     try:
         create_workflow, _ = _resolve_workflow_imports()
     except Exception as e:
-        logger.error(f"无法导入工作流模块: {e}")
-        logger.info("请确保以项目根目录运行，或已正确配置PYTHONPATH。")
+        logger.error(f"Unable to import the workflow module: {e}")
+        logger.info('Run from the project root directory or configure PYTHONPATH correctly.')
         sys.exit(1)
     _disable_langsmith_tracing(verbose=bool(getattr(args, "verbose", False)))
     data_path = args.data
     if not os.path.exists(data_path):
-        logger.error(f"数据文件不存在: {data_path}")
-        logger.info("请指定正确的数据文件路径: python main.py -d /path/to/your/data.csv")
+        logger.error(f"Data file does not exist: {data_path}")
+        logger.info('Specify a valid data file path: python main.py -d /path/to/your/data.csv')
         sys.exit(1)
-    study_area_location = "南岭成矿带"
-    target_deposit = "钨矿"
+    study_area_location = 'Nanling Metallogenic Belt'
+    target_deposit = 'Tungsten'
     interaction_mode = "auto"
     is_interactive = False
     try:
@@ -2198,45 +2198,45 @@ def main() -> None:
     except Exception:
         is_interactive = False
     if is_interactive and not study_area_location:
-        logger.warning("未指定研究区地点 (Study Area)")
-        logger.info("为了更精确地检索目标矿种信息，请先提供研究区地点/区域（如省市/矿集区/成矿带等）。")
+        logger.warning('Study area was not specified')
+        logger.info('Provide the study area or region (such as province, district, ore district, or metallogenic belt) to improve retrieval of target deposit information.')
         while not study_area_location:
-            logger.info("【INPUT】请输入研究区地点/区域:")
+            logger.info('[INPUT] Enter the study area or region:')
             user_input = _input_with_log_prefix(logger).strip()
             if user_input:
                 study_area_location = user_input
             else:
-                logger.error("研究区地点不能为空，请重新输入。")
+                logger.error('Study area cannot be empty. Please enter it again.')
     preview_data = None
     if load_data:
         try:
-            logger.info(f"正在读取数据文件以进行预览: {data_path}")
+            logger.info(f"Reading the data file for preview: {data_path}")
             preview_data = load_data(data_path)
-            logger.info("数据预览:")
-            logger.info(f"- 数据形状: {preview_data.shape}")
-            logger.info(f"- 数据列名: {', '.join(list(preview_data.columns)[:10])}...")
-            logger.info(f"- 数据类型: {preview_data.dtypes.value_counts().to_dict()}")
+            logger.info('Data preview:')
+            logger.info(f"- Data shape: {preview_data.shape}")
+            logger.info(f"- Data columns: {', '.join(list(preview_data.columns)[:10])}...")
+            logger.info(f"- Data types: {preview_data.dtypes.value_counts().to_dict()}")
         except Exception as e:
-            logger.warning(f"数据预览失败: {e}")
-            logger.info("将在工作流执行阶段尝试重新加载并验证数据...")
+            logger.warning(f"Data preview failed: {e}")
+            logger.info('The workflow will attempt to reload and validate the data during execution...')
             preview_data = None
     if not target_deposit:
         if not is_interactive:
-            logger.error("未指定目标矿种，且当前为非交互模式。")
-            logger.info("请使用 -t/--target 指定目标矿种类型，或设置 TARGET_DEPOSIT_TYPE 环境变量。")
+            logger.error('The target deposit type was not specified in noninteractive mode.')
+            logger.info('Specify the target deposit type with -t/--target or the TARGET_DEPOSIT_TYPE environment variable.')
             sys.exit(2)
-        logger.warning("未指定目标矿种 (Target Deposit)")
-        logger.info("为了进行针对性的成矿预测，系统需要知道您关注的目标矿种。")
+        logger.warning('Target deposit type was not specified')
+        logger.info('The system requires the target deposit type for targeted mineral prospectivity prediction.')
         while not target_deposit:
-            logger.info("【INPUT】请输入目标矿种类型:")
+            logger.info('[INPUT] Enter the target deposit type:')
             user_input = _input_with_log_prefix(logger).strip()
             if user_input:
                 target_deposit = user_input
             else:
-                logger.error("目标矿种不能为空，请重新输入。")
-        logger.info(f"已设置目标矿种: {target_deposit}")
+                logger.error('Target deposit type cannot be empty. Please enter it again.')
+        logger.info(f"Target deposit type set to: {target_deposit}")
         while True:
-            logger.info("【INPUT】请选择运行模式：1 默认智能化流程；2 开启人机交互（HITL）")
+            logger.info('[INPUT] Select the execution mode: 1 Default automated workflow; 2 Human-in-the-loop (HITL)')
             mode_input = _input_with_log_prefix(logger).strip()
             if not mode_input or mode_input == "1":
                 interaction_mode = "auto"
@@ -2244,19 +2244,19 @@ def main() -> None:
             if mode_input == "2":
                 interaction_mode = "hitl"
                 break
-            logger.error("输入无效，请输入 1 或 2。")
+            logger.error('Invalid input. Enter 1 or 2.')
     output_dir = args.output
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = output_dir.rstrip(os.sep)
     output_dir = f"{output_dir}_{timestamp}"
     os.makedirs(output_dir, exist_ok=True)
-    logger.info(f"输出目录: {output_dir}")
+    logger.info(f"Output directory: {output_dir}")
     run_log_path = _attach_run_log_file(output_dir)
     if run_log_path:
-        logger.info(f"本次运行日志: {run_log_path}")
+        logger.info(f"Log for this run: {run_log_path}")
     try:
         workflow = create_workflow(output_dir=output_dir)
-        logger.info(f"正在处理数据文件: {data_path}")
+        logger.info(f"Processing data file: {data_path}")
         config: dict[str, Any] = {
             "structured_output_enabled": bool(getattr(args, "structured_output", False)),
             "reflection_enabled": bool(getattr(args, "reflection", False)),
@@ -2286,18 +2286,18 @@ def main() -> None:
         def _flag_source(argv_on: str, argv_off: str, env_names: tuple[str, ...], default_when_unset: bool) -> tuple[str, Optional[str], bool]:
             argv = [str(a) for a in sys.argv[1:]]
             if argv_on in argv:
-                return "命令行", None, True
+                return 'command line', None, True
             if argv_off in argv:
-                return "命令行", None, False
+                return 'command line', None, False
             raw = _env_flag(env_names)
             if raw is None:
-                return "默认", None, default_when_unset
+                return 'default', None, default_when_unset
             norm = str(raw).strip().lower()
             if norm in truthy:
-                return "环境变量", raw, True
+                return 'environment variable', raw, True
             if norm in falsy:
-                return "环境变量", raw, False
-            return "环境变量(无效值)", raw, default_when_unset
+                return 'environment variable', raw, False
+            return 'environment variable (invalid value)', raw, default_when_unset
 
         structured_source, structured_raw, _ = _flag_source(
             argv_on="--structured-output",
@@ -2312,24 +2312,24 @@ def main() -> None:
             default_when_unset=True,
         )
 
-        logger.info("功能开关状态：")
-        logger.info(f"- 地质解译四阶段CoT: {'开启（受全局CoT开关约束）' if config['geology_four_stage_cot_enabled'] else '关闭，仅输出最终解释'}")
+        logger.info('Feature switch settings:')
+        logger.info(f"- Four-stage geological CoT: {'enabled (subject to the global CoT switch)' if config['geology_four_stage_cot_enabled'] else 'disabled; final interpretation only'}")
         logger.info(
-            f"- SOM学习方式: {config['learning_mode']}；"
-            f"QE概率校准: {'开启' if config['som_qe_calibration_enabled'] else '关闭'}"
+            f"- SOM learning mode: {config['learning_mode']}; "
+            f"QE probability calibration: {'enabled' if config['som_qe_calibration_enabled'] else 'disabled'}"
         )
         logger.info(
-            f"- 反思与自修正机制: {'开启' if config['reflection_enabled'] else '关闭'}"
-            f" (来源: {reflection_source}"
-            f"{'' if reflection_raw is None else f', 值: {reflection_raw}'}; max_rounds={config['reflection_max_rounds']})"
+            f"- Reflection and self-revision: {'enabled' if config['reflection_enabled'] else 'disabled'}"
+            f" (source: {reflection_source}"
+            f"{'' if reflection_raw is None else f', value: {reflection_raw}'}; max_rounds={config['reflection_max_rounds']})"
         )
         logger.info(
-            f"- 结构化输出与工具标准化: 结构化输出{'开启' if config['structured_output_enabled'] else '关闭'}"
-            f" (来源: {structured_source}{'' if structured_raw is None else f', 值: {structured_raw}'}); 工具标准化开启(固定)"
+            f"- Structured output and tool standardization: structured output {'enabled' if config['structured_output_enabled'] else 'disabled'}"
+            f" (source: {structured_source}{'' if structured_raw is None else f', value: {structured_raw}'}); tool standardization enabled (fixed)"
         )
-        logger.info(f"- SOM全元素实验: {'开启' if config['som_all_elements_enabled'] else '关闭'} (默认关闭，可用 --som-all-elements 开启)")
-        logger.info(f"- SOM输入使用原始数据: {'开启' if config['som_use_raw_data_enabled'] else '关闭'} (默认关闭，关闭时使用预处理后数据)")
-        logger.info(f"- 输出语言: {output_lang}")
+        logger.info(f"- All-element SOM experiment: {'enabled' if config['som_all_elements_enabled'] else 'disabled'} (disabled by default; enable with --som-all-elements)")
+        logger.info(f"- Raw SOM input: {'enabled' if config['som_use_raw_data_enabled'] else 'disabled'} (disabled by default; uses preprocessed data when disabled)")
+        logger.info(f"- Output language: {output_lang}")
         result = workflow.run(data_path, target_deposit_type=target_deposit, study_area_location=study_area_location, config=config, data=preview_data)
         eval_stats = None
         get_eval_stats = None
@@ -2363,9 +2363,9 @@ def main() -> None:
                     for k, val in agent_stats.items():
                         if isinstance(k, str) and isinstance(val, int):
                             totals[k] = totals.get(k, 0) + val
-                logger.info("评估统计（反思/结构化输出相关）：")
+                logger.info('GeochemMAF full-core workflow completed.')
                 logger.info(
-                    f"- 合计: decide={totals.get('decide_calls', 0)}, decide_json={totals.get('decide_json_calls', 0)}, "
+                    f"- Totals: decide={totals.get('decide_calls', 0)}, decide_json={totals.get('decide_json_calls', 0)}, "
                     f"reflection_rounds={totals.get('reflection_text_rounds', 0)}, "
                     f"json_repair={totals.get('json_repair_successes', 0)}/{totals.get('json_repair_attempts', 0)}, "
                     f"structured_parse_failures={totals.get('structured_parse_failures', 0)}"
@@ -2386,7 +2386,7 @@ def main() -> None:
                         f"structured_parse_failures={structured_parse_failures}"
                     )
         logger.info("=" * 60)
-        logger.info("地球化学多智能体成矿潜力预测完成")
+        logger.info('Geochemical multi-agent mineral prospectivity prediction completed')
         logger.info("=" * 60)
         output_paths = None
         if isinstance(result.get("output_results"), dict):
@@ -2423,11 +2423,11 @@ def main() -> None:
             )
             if isinstance(output_paths, dict):
                 output_paths["eval_metrics_md"] = metrics_md_path
-            logger.info(f"评测指标摘要已保存: {metrics_md_path}")
+            logger.info(f"Evaluation summary saved: {metrics_md_path}")
         except Exception as e:
-            logger.warning(f"评测指标生成失败: {e}")
+            logger.warning(f"Failed to generate evaluation metrics: {e}")
         if output_paths:
-            logger.info("生成的报告和数据文件：")
+            logger.info('Generated reports and data files:')
             for file_type, file_path in output_paths.items():
                 if file_path and os.path.exists(file_path):
                     file_size = os.path.getsize(file_path) / 1024
@@ -2436,7 +2436,7 @@ def main() -> None:
                     else:
                         size_str = f"{file_size / 1024:.2f} MB"
                     logger.info(f"- {file_type.replace('_', ' ').title()}: {file_path} ({size_str})")
-        logger.info("预测结果摘要：")
+        logger.info('Prediction summary:')
         if "prediction_model_final" in result:
             prediction = result["prediction_model_final"].get("predictions", {})
         elif "prediction_model" in result:
@@ -2451,38 +2451,34 @@ def main() -> None:
                     total_samples = result["data_preprocessing"]["basic_stats"].get("total_samples", 0)
                 elif "geology_expert_primary" in result:
                     total_samples = result["geology_expert_primary"].get("total_samples", 0)
-            logger.info(f"- 高潜力区域: {high_potential_count} 个")
-            logger.info(f"- 总分析样本: {total_samples} 个")
+            logger.info(f"- High-potential areas: {high_potential_count}")
+            logger.info(f"- Total samples analyzed: {total_samples}")
             if total_samples > 0:
                 percentage = (high_potential_count / total_samples) * 100
-                logger.info(f"- 高潜力占比: {percentage:.2f}%")
+                logger.info(f"- High-potential proportion: {percentage:.2f}%")
         if "geology_expert_final" in result:
             final_geology = result["geology_expert_final"]
             if final_geology:
-                mineralization_types = final_geology.get("mineralization_types", "未明确识别")
-                logger.info("地质分析结果：")
-                logger.info(f"- 推断矿化类型: {mineralization_types}")
+                mineralization_types = final_geology.get("mineralization_types", 'Unidentified')
+                logger.info('Geological analysis results:')
+                logger.info(f"- Inferred mineralization type: {mineralization_types}")
         if "prediction_model" in result:
             mineral_info = result["prediction_model"].get("mineralization_info", {})
             if mineral_info:
-                primary_type = mineral_info.get("primary_type", "未明确识别")
-                logger.info(f"推断矿化类型: {primary_type}")
-        logger.info("提示：请查看输出目录中的综合报告以获取详细分析结果。")
+                primary_type = mineral_info.get("primary_type", 'Unidentified')
+                logger.info(f"Inferred mineralization type: {primary_type}")
+        logger.info('See the comprehensive report in the output directory for detailed analysis.')
         if run_log_path:
-            logger.info(f"完整运行日志已保存: {run_log_path}")
-        if TokenMonitor:
-            TokenMonitor().print_report()
+            logger.info(f"Complete run log saved: {run_log_path}")
         logger.info("=" * 60)
     except Exception as e:
-        logger.error(f"程序执行出错：{str(e)}")
+        logger.error(f"Execution failed: {str(e)}")
         if bool(getattr(args, "verbose", False)):
-            logger.exception("异常堆栈")
-        if TokenMonitor:
-            TokenMonitor().print_report()
-        logger.info("请检查以下几点：")
-        logger.info("1. 数据文件格式是否正确")
-        logger.info("2. 是否安装了所有依赖包")
-        logger.info("3. Python版本是否兼容（建议Python 3.8+）")
+            logger.exception('Exception traceback')
+        logger.info('Check the following:')
+        logger.info('1. The data file format is correct')
+        logger.info('2. All dependencies are installed')
+        logger.info('3. The Python version is compatible (Python 3.8+ was originally recommended)')
         sys.exit(1)
 if __name__ == "__main__":
     main()

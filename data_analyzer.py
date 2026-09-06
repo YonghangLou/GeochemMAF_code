@@ -26,9 +26,9 @@ class DataAnalyzer:
         self._ensure_cache_df(df)
         cache_key = ("data_quality",)
         if cache_key in self._cache:
-            logger.info("使用缓存的数据质量分析结果")
+            logger.info('Using cached data-quality analysis results')
             return self._cache[cache_key]
-        logger.info("分析数据质量...")
+        logger.info('Analyzing data quality...')
         results = {
             "shape": df.shape,
             "columns": list(df.columns),
@@ -45,17 +45,17 @@ class DataAnalyzer:
         results["numeric_columns"] = df.select_dtypes(include=["int64", "float64"]).columns.tolist()
         results["categorical_columns"] = df.select_dtypes(include=["object", "category"]).columns.tolist()
         self._cache[cache_key] = results
-        logger.info(f"数据质量分析完成: {results['shape'][0]} 行, {results['shape'][1]} 列")
+        logger.info(f"Data-quality analysis completed: {results['shape'][0]} rows, {results['shape'][1]} columns")
         return results
 
     def analyze_distributions(self, df: pd.DataFrame, columns: List[str] = None) -> Dict[str, Any]:
         self._ensure_cache_df(df)
-        logger.info("分析数据分布...")
+        logger.info('Analyzing data distributions...')
         if columns is None:
             columns = df.select_dtypes(include=["int64", "float64"]).columns.tolist()
         cache_key = ("distributions", tuple(columns))
         if cache_key in self._cache:
-            logger.info("使用缓存的数据分布分析结果")
+            logger.info('Using cached distribution-analysis results')
             return self._cache[cache_key]
         results = {}
         for col in columns:
@@ -80,7 +80,7 @@ class DataAnalyzer:
                     _, p_value = stats.shapiro(col_data.sample(min(5000, len(col_data)), random_state=42))
                     stats_dict["normality_test"] = {"test": "Shapiro-Wilk", "p_value": float(p_value), "is_normal": p_value > 0.05}
                 except Exception as e:
-                    logger.warning(f"正态性检验失败 {col}: {e}")
+                    logger.warning(f"Normality test failed for {col}: {e}")
             Q1 = stats_dict["q25"]
             Q3 = stats_dict["q75"]
             IQR = Q3 - Q1
@@ -95,19 +95,19 @@ class DataAnalyzer:
             }
             results[col] = stats_dict
         self._cache[cache_key] = results
-        logger.info(f"分布分析完成: {len(results)} 个特征")
+        logger.info(f"Distribution analysis completed: {len(results)} features")
         return results
 
     def analyze_correlations(self, df: pd.DataFrame, method: str = "pearson", threshold: float = 0.7) -> Dict[str, Any]:
         self._ensure_cache_df(df)
         cache_key = ("correlations", str(method), float(threshold))
         if cache_key in self._cache:
-            logger.info("使用缓存的相关性分析结果")
+            logger.info('Using cached correlation-analysis results')
             return self._cache[cache_key]
-        logger.info(f"分析特征相关性 (方法: {method})...")
+        logger.info(f"Analyzing feature correlations (method: {method})...")
         numeric_df = df.select_dtypes(include=["int64", "float64"])
         if numeric_df.shape[1] < 2:
-            logger.warning("数值列少于2个，无法进行相关性分析")
+            logger.warning('Fewer than 2 numeric columns are available, so correlation analysis cannot be performed')
             return {}
         corr_matrix = numeric_df.corr(method=method)
         high_corr_pairs = []
@@ -118,11 +118,11 @@ class DataAnalyzer:
                     high_corr_pairs.append({"feature1": corr_matrix.columns[i], "feature2": corr_matrix.columns[j], "correlation": float(corr_value)})
         results = {"correlation_matrix": corr_matrix.to_dict(), "high_correlation_pairs": high_corr_pairs, "method": method, "threshold": threshold}
         self._cache[cache_key] = results
-        logger.info(f"相关性分析完成: 发现 {len(high_corr_pairs)} 对高相关特征")
+        logger.info(f"Correlation analysis completed: found {len(high_corr_pairs)} highly correlated feature pairs")
         return results
 
     def recommend_preprocessing_strategy(self, df: pd.DataFrame) -> Dict[str, Any]:
-        logger.info("推荐预处理策略...")
+        logger.info('Recommending a preprocessing strategy...')
         quality = self.analyze_data_quality(df)
         distributions = self.analyze_distributions(df)
         recommendations = {
@@ -135,25 +135,25 @@ class DataAnalyzer:
         for col, info in quality["missing_values"].items():
             if info["ratio"] > 50:
                 recommendations["missing_value_strategy"][col] = "drop_column"
-                recommendations["reasoning"].append(f"{col}: 缺失值比例 {info['ratio']:.1f}% > 50%，建议删除该列")
+                recommendations["reasoning"].append(f"{col}: missing-value ratio {info['ratio']:.1f}% > 50%, so dropping this column is recommended")
             elif info["ratio"] > 5:
                 recommendations["missing_value_strategy"][col] = "impute_median"
-                recommendations["reasoning"].append(f"{col}: 缺失值比例 {info['ratio']:.1f}%，建议使用中位数填充")
+                recommendations["reasoning"].append(f"{col}: missing-value ratio {info['ratio']:.1f}%, so median imputation is recommended")
             else:
                 recommendations["missing_value_strategy"][col] = "impute_mean"
-                recommendations["reasoning"].append(f"{col}: 缺失值比例 {info['ratio']:.1f}%，建议使用均值填充")
+                recommendations["reasoning"].append(f"{col}: missing-value ratio {info['ratio']:.1f}%, so mean imputation is recommended")
         for col, dist in distributions.items():
             if "outliers" in dist and dist["outliers"]["ratio"] > 5:
                 recommendations["outlier_strategy"][col] = "clip"
-                recommendations["reasoning"].append(f"{col}: 异常值比例 {dist['outliers']['ratio']:.1f}%，建议使用 IQR 方法裁剪")
+                recommendations["reasoning"].append(f"{col}: outlier ratio {dist['outliers']['ratio']:.1f}%, so IQR-based clipping is recommended")
         for col, dist in distributions.items():
             if abs(dist["skewness"]) > 1:
                 if dist["min"] > 0:
                     recommendations["transformation_strategy"][col] = "log_transform"
-                    recommendations["reasoning"].append(f"{col}: 偏度 {dist['skewness']:.2f}，建议进行对数转换")
+                    recommendations["reasoning"].append(f"{col}: skewness {dist['skewness']:.2f}, so log transformation is recommended")
                 else:
                     recommendations["transformation_strategy"][col] = "box_cox"
-                    recommendations["reasoning"].append(f"{col}: 偏度 {dist['skewness']:.2f}，建议进行 Box-Cox 转换")
+                    recommendations["reasoning"].append(f"{col}: skewness {dist['skewness']:.2f}, so Box-Cox transformation is recommended")
         ranges = []
         for col, dist in distributions.items():
             ranges.append(dist["max"] - dist["min"])
@@ -162,15 +162,15 @@ class DataAnalyzer:
             min_range = min(ranges)
             if max_range / (min_range + 1e-09) > 100:
                 recommendations["scaling_strategy"] = "standard_scaler"
-                recommendations["reasoning"].append(f"特征范围差异大 (最大/最小 = {max_range / min_range:.1f})，建议使用 StandardScaler")
+                recommendations["reasoning"].append(f"Feature ranges differ substantially (max/min = {max_range / min_range:.1f}), so StandardScaler is recommended")
             else:
                 recommendations["scaling_strategy"] = "minmax_scaler"
-                recommendations["reasoning"].append("特征范围相对一致，建议使用 MinMaxScaler")
-        logger.info(f"预处理策略推荐完成: {len(recommendations['reasoning'])} 条建议")
+                recommendations["reasoning"].append('Feature ranges are relatively consistent, so MinMaxScaler is recommended')
+        logger.info(f"Preprocessing-strategy recommendation completed: {len(recommendations['reasoning'])} suggestions")
         return recommendations
 
     def generate_data_report(self, df: pd.DataFrame, *, include_correlations: bool = True) -> str:
-        logger.info("生成数据分析报告...")
+        logger.info('Generating the data-analysis report...')
         quality = self.analyze_data_quality(df)
         distributions = self.analyze_distributions(df)
         correlations: Dict[str, Any] = {}
@@ -179,49 +179,49 @@ class DataAnalyzer:
         recommendations = self.recommend_preprocessing_strategy(df)
         report = []
         report.append("=" * 80)
-        report.append("数据分析报告")
+        report.append('Data Analysis Report')
         report.append("=" * 80)
         report.append("")
-        report.append("## 1. 数据概览")
-        report.append(f"- 数据形状: {quality['shape'][0]} 行 × {quality['shape'][1]} 列")
-        report.append(f"- 数值列: {len(quality['numeric_columns'])} 个")
-        report.append(f"- 分类列: {len(quality['categorical_columns'])} 个")
-        report.append(f"- 重复行: {quality['duplicates']} 行")
+        report.append('## 1. Data Overview')
+        report.append(f"- Data shape: {quality['shape'][0]} rows x {quality['shape'][1]} columns")
+        report.append(f"- Numeric columns: {len(quality['numeric_columns'])}")
+        report.append(f"- Categorical columns: {len(quality['categorical_columns'])}")
+        report.append(f"- Duplicate rows: {quality['duplicates']}")
         report.append("")
-        report.append("## 2. 数据质量")
+        report.append('## 2. Data Quality')
         if quality["missing_values"]:
-            report.append("### 缺失值:")
+            report.append('### Missing Values:')
             for col, info in quality["missing_values"].items():
                 report.append(f"  - {col}: {info['count']} ({info['ratio']:.1f}%)")
         else:
-            report.append("- 无缺失值")
+            report.append('- No missing values')
         report.append("")
-        report.append("## 3. 分布特征")
+        report.append('## 3. Distribution Characteristics')
         for i, (col, dist) in enumerate(list(distributions.items())):
             report.append(f"### {col}:")
-            report.append(f"  - 均值: {dist['mean']:.4f}, 中位数: {dist['median']:.4f}")
-            report.append(f"  - 标准差: {dist['std']:.4f}")
-            report.append(f"  - 范围: [{dist['min']:.4f}, {dist['max']:.4f}]")
-            report.append(f"  - 偏度: {dist['skewness']:.2f}, 峰度: {dist['kurtosis']:.2f}")
+            report.append(f"  - Mean: {dist['mean']:.4f}, Median: {dist['median']:.4f}")
+            report.append(f"  - Standard deviation: {dist['std']:.4f}")
+            report.append(f"  - Range: [{dist['min']:.4f}, {dist['max']:.4f}]")
+            report.append(f"  - Skewness: {dist['skewness']:.2f}, Kurtosis: {dist['kurtosis']:.2f}")
             if "outliers" in dist:
-                report.append(f"  - 异常值: {dist['outliers']['count']} ({dist['outliers']['ratio']:.1f}%)")
+                report.append(f"  - Outliers: {dist['outliers']['count']} ({dist['outliers']['ratio']:.1f}%)")
             report.append("")
-        report.append("## 4. 高相关性特征对")
+        report.append('## 4. Highly Correlated Feature Pairs')
         if not include_correlations:
-            report.append("- 本阶段未执行相关性分析（将在后续特征分析阶段进行）")
+            report.append('- Correlation analysis was not run at this stage (it will be performed in the downstream feature-analysis stage)')
         else:
             if correlations.get("high_correlation_pairs"):
                 for pair in correlations["high_correlation_pairs"]:
                     report.append(f"  - {pair['feature1']} ↔ {pair['feature2']}: {pair['correlation']:.3f}")
             else:
-                report.append("- 无高相关性特征对")
+                report.append('- No highly correlated feature pairs were found')
         report.append("")
-        report.append("## 5. 预处理建议")
+        report.append('## 5. Preprocessing Recommendations')
         for reason in recommendations["reasoning"]:
             report.append(f"  - {reason}")
         report.append("")
         report.append("=" * 80)
         report_text = "\n".join(report)
-        logger.info("数据分析报告生成完成")
+        logger.info('Data-analysis report generation completed')
         return report_text
 
