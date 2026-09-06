@@ -80,10 +80,10 @@ def get_llm(model_name: Optional[str] = None) -> ChatOpenAI:
         api_key = _first_env("DEEPSEEK_API_KEY", "OPENAI_API_KEY")
         if not api_key:
             raise ValueError(
-                "未设置 DEEPSEEK_API_KEY 环境变量。\n"
-                "PowerShell 临时设置示例：$env:DEEPSEEK_API_KEY=\"你的Key\"；\n"
-                "或在 .env 中添加：DEEPSEEK_API_KEY=你的Key\n"
-                "也可使用 OPENAI_API_KEY 作为 DEEPSEEK_API_KEY 的别名。"
+                'The `DEEPSEEK_API_KEY` environment variable is not set.\n'
+                'Temporary PowerShell example: $env:DEEPSEEK_API_KEY="your_key"\n'
+                'Or add this line to `.env`: DEEPSEEK_API_KEY=your_key\n'
+                'You may also use `OPENAI_API_KEY` as an alias for `DEEPSEEK_API_KEY`.'
             )
         os.environ.setdefault("DEEPSEEK_API_KEY", api_key)
         base_url = "https://api.deepseek.com"
@@ -100,10 +100,10 @@ def get_llm(model_name: Optional[str] = None) -> ChatOpenAI:
         api_key = _first_env("QWEN_API_KEY", "DASHSCOPE_API_KEY")
         if not api_key:
             raise ValueError(
-                "未设置 QWEN_API_KEY 环境变量。\n"
-                "PowerShell 临时设置示例：$env:QWEN_API_KEY=\"你的Key\"；\n"
-                "或在 .env 中添加：QWEN_API_KEY=你的Key\n"
-                "也可使用 DASHSCOPE_API_KEY 作为 QWEN_API_KEY 的别名。"
+                'The `QWEN_API_KEY` environment variable is not set.\n'
+                'Temporary PowerShell example: $env:QWEN_API_KEY="your_key"\n'
+                'Or add this line to `.env`: QWEN_API_KEY=your_key\n'
+                'You may also use `DASHSCOPE_API_KEY` as an alias for `QWEN_API_KEY`.'
             )
         os.environ.setdefault("QWEN_API_KEY", api_key)
         base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
