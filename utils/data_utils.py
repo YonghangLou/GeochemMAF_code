@@ -19,10 +19,110 @@ _OUTPUT_LANG_MAP = {
     "english": "en",
 }
 
-_TEXT_ZH_TO_EN: Dict[str, str] = {}
+_TEXT_ZH_TO_EN: Dict[str, str] = {
+    "经度": "Longitude",
+    "纬度": "Latitude",
+    "矿床": "Deposit",
+    "标签": "Label",
+    "聚类编号": "Cluster ID",
+    "成矿潜力概率": "Mineral Potential Probability",
+    "已知矿床": "Known Deposit",
+    "已知矿床样本": "Known Deposit Samples",
+    "地球化学异常分布图": "Geochemical Anomaly Distribution Map",
+    "样本聚类空间结果图": "Sample Cluster Spatial Map",
+    "样本数（对数刻度）": "Sample Count (Log Scale)",
+    "样本数": "Sample Count",
+    "得分": "Score",
+    "得分(0-1)": "Score (0-1)",
+    "得分信号(0-1)": "Score Signals (0-1)",
+    "评测得分概览": "Evaluation Score Overview",
+    "标签分布": "Label Distribution",
+    "校准指标": "Calibration Metrics",
+    "排序指标": "Ranking Metrics",
+    "过程指标": "Process Metrics",
+    "机制指标": "Mechanism Metrics",
+    "次数": "Count",
+    "智能体调用统计": "Agent Call Statistics",
+    "Token数": "Token Count",
+    "输入(Prompt)": "Input (Prompt)",
+    "输出(Completion)": "Output (Completion)",
+    "Token使用情况": "Token Usage",
+    "元素": "Element",
+    "含量值": "Concentration",
+    "浓度": "Concentration",
+    "浓度分布": "Concentration Distribution",
+    "频率": "Frequency",
+    "所有元素含量分布箱线图": "Boxplot of All Element Concentrations",
+    "累积频率分布": "Cumulative Frequency Distribution",
+    "C-A方法双对数图": "C-A Method Log-Log Plot",
+    "元素浓度 (对数刻度)": "Element Concentration (Log Scale)",
+    "累积面积百分比 (%) (对数刻度)": "Cumulative Area Percentage (%) (Log Scale)",
+    "各元素异常样本百分比": "Anomalous Sample Percentage by Element",
+    "异常样本百分比 (%)": "Anomalous Sample Percentage (%)",
+    "异常阈值": "Anomaly Threshold",
+    "异常样本数": "Anomaly Sample Count",
+    "异常百分比(%)": "Anomaly Percentage (%)",
+    "高值阈值": "High-Value Threshold",
+    "高值样本数": "High-Value Sample Count",
+    "高值比例(%)": "High-Value Percentage (%)",
+    "元素空间分布图": "Element Spatial Distribution Map",
+    "关键元素分析": "Key Element Analysis",
+    "核心元素总SHAP值": "Total SHAP of Core Elements",
+    "相关系数": "Correlation Coefficient",
+    "因子序号": "Factor Index",
+    "特征值": "Eigenvalue",
+    "碎石图": "Scree Plot",
+    "因子载荷热力图": "Factor Loading Heatmap",
+    "元素层次聚类树状图（基于相关距离）": "Element Hierarchical Clustering Dendrogram (Correlation Distance)",
+    "距离 (1 - Pearson r)": "Distance (1 - Pearson r)",
+    "层次聚类重排后的相关性热力图": "Reordered Correlation Heatmap by Hierarchical Clustering",
+    "元素相关性热力图": "Element Correlation Heatmap",
+    "API请求频率随时间变化": "API Request Frequency Over Time",
+    "时间": "Time",
+    "请求数": "Request Count",
+    "请求序号": "Request Index",
+    "单次请求 Token 消耗分析": "Per-request Token Usage Analysis",
+    "总分(0-100)": "Overall Score (0-100)",
+    "结果(×100)": "Outcome (×100)",
+    "过程(×100)": "Process (×100)",
+    "机制(×100)": "Mechanism (×100)",
+    "正例比例": "Positive Rate",
+    "总计": "Total",
+    "检查通过率": "Checks Pass Rate",
+    "返工率": "Rework Rate",
+    "预算利用率": "Budget Utilization",
+    "决策稳定性": "Decision Stability",
+    "人工介入率": "HITL Intervention Rate",
+    "结构化失败率": "Structured Failure Rate",
+    "JSON修复成功率": "JSON Repair Success Rate",
+    "反思强度": "Reflection Intensity",
+    "决策调用次数": "Decision Calls",
+    "结构化调用次数": "Structured Calls",
+    "反思文本轮次": "Reflection Text Rounds",
+    "Brier分数": "Brier Score",
+    "对数损失": "Log Loss",
+    "ECE(10箱)": "ECE (10 bins)",
+    "MCE(10箱)": "MCE (10 bins)",
+    "Top1%精度": "Top 1% Precision",
+    "Top1%召回": "Top 1% Recall",
+    "Top正例数精度": "Top Pos-count Precision",
+    "Top正例数召回": "Top Pos-count Recall",
+    "元素异常空间分布图": "Element Anomaly Spatial Distribution Map",
+    "C-A阈值": "C-A Threshold",
+}
 
-_CSV_HEADER_ZH_TO_EN: Dict[str, str] = {}
-_CSV_HEADER_EN_TO_ZH: Dict[str, str] = {}
+_CSV_HEADER_ZH_TO_EN: Dict[str, str] = {
+    "元素名称": "Element Name",
+    "元素": "Element",
+    "异常阈值": "Anomaly Threshold",
+    "异常样本数": "Anomaly Sample Count",
+    "异常百分比(%)": "Anomaly Percentage (%)",
+    "经度": "Longitude",
+    "纬度": "Latitude",
+    "聚类编号": "Cluster ID",
+    "核心元素总SHAP值": "Total SHAP of Core Elements",
+}
+_CSV_HEADER_EN_TO_ZH: Dict[str, str] = {v: k for k, v in _CSV_HEADER_ZH_TO_EN.items()}
 
 
 def normalize_output_language(value: Any) -> str:
@@ -49,21 +149,24 @@ def apply_output_language_env(config: Optional[Dict[str, Any]] = None) -> str:
 
 
 def get_bilingual_text(zh_text: str, en_text: str, *, lang: Optional[str] = None) -> str:
-    _ = normalize_output_language(lang if lang is not None else resolve_output_language())
-    return str(en_text)
+    current = normalize_output_language(lang if lang is not None else resolve_output_language())
+    return str(en_text) if current == "en" else str(zh_text)
 
 
 def localize_text(text: Any, *, lang: Optional[str] = None) -> str:
     s = str(text or "")
-    _ = normalize_output_language(lang if lang is not None else resolve_output_language())
-    return _TEXT_ZH_TO_EN.get(s, s)
+    current = normalize_output_language(lang if lang is not None else resolve_output_language())
+    if current == "en":
+        return _TEXT_ZH_TO_EN.get(s, s)
+    rev = {v: k for k, v in _TEXT_ZH_TO_EN.items()}
+    return rev.get(s, s)
 
 
 def localize_dataframe_headers(df: pd.DataFrame, *, lang: Optional[str] = None) -> pd.DataFrame:
     if not isinstance(df, pd.DataFrame):
         return df
-    _ = normalize_output_language(lang if lang is not None else resolve_output_language())
-    mapping = _CSV_HEADER_ZH_TO_EN
+    current = normalize_output_language(lang if lang is not None else resolve_output_language())
+    mapping = _CSV_HEADER_ZH_TO_EN if current == "en" else _CSV_HEADER_EN_TO_ZH
     out = df.copy()
     out.rename(columns={c: mapping.get(str(c), str(c)) for c in out.columns}, inplace=True)
     return out
@@ -75,16 +178,19 @@ def setup_matplotlib_output_style(plt_module: Any = None) -> None:
             import matplotlib.pyplot as _plt
             plt_module = _plt
         current_lang = resolve_output_language()
-        _ = current_lang
-        plt_module.rcParams["font.family"] = "Times New Roman"
-        plt_module.rcParams["font.serif"] = ["Times New Roman"]
-        plt_module.rcParams["font.sans-serif"] = ["Times New Roman", "Arial", "DejaVu Sans", "sans-serif"]
+        if str(current_lang).lower() == "zh":
+            plt_module.rcParams["font.family"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans", "Arial", "sans-serif"]
+            plt_module.rcParams["font.serif"] = ["Times New Roman", "DejaVu Serif"]
+        else:
+            plt_module.rcParams["font.family"] = "Times New Roman"
+            plt_module.rcParams["font.serif"] = ["Times New Roman"]
+        plt_module.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Times New Roman", "Arial", "DejaVu Sans", "sans-serif"]
         plt_module.rcParams["axes.unicode_minus"] = False
     except Exception:
         pass
 def load_data(file_path: str) -> pd.DataFrame:
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Data file does not exist: {file_path}")
+        raise FileNotFoundError(f"数据文件不存在: {file_path}")
     ext = os.path.splitext(file_path)[1].lower()
     if ext == '.csv':
         encodings = ['utf-8', 'gbk', 'gb2312', 'ISO-8859-1', 'latin1']
@@ -98,21 +204,21 @@ def load_data(file_path: str) -> pd.DataFrame:
                 logger.warning(f"Failed to read data with encoding: {encoding}, trying next...")
                 continue
         if df is None:
-            raise ValueError(f"Unable to read file: {file_path}. All attempted encodings failed.")
+            raise ValueError(f"无法读取文件: {file_path}，尝试了多种编码均失败")
         return df
     elif ext == '.xlsx' or ext == '.xls':
         return pd.read_excel(file_path)
     elif ext == '.json':
         return pd.read_json(file_path)
     else:
-        raise ValueError(f"Unsupported data-file format: {ext}")
+        raise ValueError(f"不支持的数据文件格式: {ext}")
 
 
 def detect_coordinate_columns(df: pd.DataFrame) -> Tuple[Optional[str], Optional[str]]:
     if not isinstance(df, pd.DataFrame) or df.empty:
         return None, None
-    possible_x_cols = ["Longitude", "longitude", "LONGITUDE", "Lon", "lon", "x", "X"]
-    possible_y_cols = ["Latitude", "latitude", "LATITUDE", "Lat", "lat", "y", "Y"]
+    possible_x_cols = ["经度", "longitude", "LONGITUDE", "Lon", "lon", "x", "X"]
+    possible_y_cols = ["纬度", "latitude", "LATITUDE", "Lat", "lat", "y", "Y"]
     x_col = None
     y_col = None
     for col in df.columns:
@@ -146,8 +252,8 @@ def normalize_coordinates(
     *,
     x_col: Optional[str] = None,
     y_col: Optional[str] = None,
-    lon_col: str = "Longitude",
-    lat_col: str = "Latitude",
+    lon_col: str = "经度",
+    lat_col: str = "纬度",
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     if not isinstance(df, pd.DataFrame) or df.empty:
         return df, {"ok": False, "reason": "df_invalid_or_empty"}
