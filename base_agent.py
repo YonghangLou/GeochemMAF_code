@@ -116,9 +116,7 @@ class BaseAgent:
         self.skills = _SkillRegistry(owner=self.agent_name) if _SkillRegistry is not None else None
         self.skill_docs = {}
         self.skills_catalog: List[Dict[str, str]] = []
-        self.system_prompt = ChatPromptTemplate.from_template(
-            '\n            You are {agent_name}, {role_description}\n            \n            Available skills (name | description):\n            {skills}\n            \n            Current conversation history:\n            {chat_history}\n            \n            Current task:\n            {task}\n            \n            Generate the next response according to your role and the task. If a tool call is required, use the expected format.\n            '
-        )
+        self.system_prompt = ChatPromptTemplate.from_template('\n            你是{agent_name}，{role_description}\n            \n            可用 Skills（name | description）：\n            {skills}\n            \n            当前对话历史：\n            {chat_history}\n            \n            当前任务：\n            {task}\n            \n            请根据你的角色和任务，生成下一步响应。如果需要调用工具，请使用指定格式。\n            ')
         if _load_skill_docs_index is not None:
             try:
                 self.skill_docs = _load_skill_docs_index()
@@ -210,7 +208,7 @@ class BaseAgent:
             s = self.describe_skills_text()
         except Exception:
             s = ""
-        return s.strip() if isinstance(s, str) and s.strip() else "(none)"
+        return s.strip() if isinstance(s, str) and s.strip() else "（无）"
 
     def _skills_router_choices_text(self) -> str:
         docs = getattr(self, "skill_docs", None)
@@ -299,11 +297,11 @@ class BaseAgent:
             return []
         parser = JsonOutputParser()
         router_prompt = ChatPromptTemplate.from_template(
-            "You are a skill router. Based on the task, select the 0-3 most relevant Skill IDs from the available skills.\n"
-            "Only choose from the listed skills. If no skill is needed, return an empty list.\n"
-            "Output requirement: return JSON only, without any explanation.\n\n"
-            "Available skills:\n{skills}\n\n"
-            "Task:\n{task}\n\n"
+            "你是一个技能路由器。根据【任务】从【可用 Skills】选择最相关的 0-3 个 Skill ID。\n"
+            "只能从列表中选择；如果不需要任何技能，返回空列表。\n"
+            "输出要求：只输出 JSON，不要输出解释文字。\n\n"
+            "【可用 Skills】\n{skills}\n\n"
+            "【任务】\n{task}\n\n"
             "{format_instructions}\n"
         )
         chain = router_prompt | self.llm | parser
@@ -345,9 +343,9 @@ class BaseAgent:
         lines: List[str] = []
         header = str(getattr(self, "agent_name", "") or type(self).__name__).strip()
         if role:
-            lines.append(f"{header}: {role}")
+            lines.append(f"{header}：{role}")
         else:
-            lines.append(f"{header}:")
+            lines.append(f"{header}：")
         if isinstance(caps, list):
             for it in caps:
                 s = str(it or "").strip()
@@ -357,7 +355,7 @@ class BaseAgent:
             for k, v in caps.items():
                 key = str(k or "").strip()
                 if key:
-                    lines.append(f"- {key}:")
+                    lines.append(f"- {key}：")
                 if isinstance(v, list):
                     for it in v:
                         s = str(it or "").strip()
@@ -378,7 +376,7 @@ class BaseAgent:
             except Exception:
                 skills_text = ""
             if skills_text:
-                lines.append("- Skills:")
+                lines.append("- Skills：")
                 for row in str(skills_text).splitlines():
                     s = str(row or "").rstrip()
                     if s:
@@ -516,7 +514,7 @@ class BaseAgent:
         if name and name in base:
             return True
         low = base.lower()
-        triggers = ["reference", "details", "more", "documentation", "forms", "script", "example", "demo", "run", "execute"]
+        triggers = ["参考", "详见", "更多", "参考资料", "reference", "forms", "脚本", "示例", "example", "demo", "run", "运行"]
         return any((t.lower() in low for t in triggers))
 
     def _load_text_file(self, abs_path: str) -> Optional[str]:
@@ -550,7 +548,7 @@ class BaseAgent:
         if rel and rel not in base and name and name not in base:
             return False
         low = base.lower()
-        triggers = ["view", "open", "source", "code", "content"]
+        triggers = ["查看", "打开", "源码", "代码", "内容", "source", "code"]
         return any((t.lower() in low for t in triggers))
 
     def _should_run_skill_script(self, request_text: str, script_rel: str) -> bool:
@@ -564,7 +562,7 @@ class BaseAgent:
         if rel and rel not in base and name and name not in base:
             return False
         low = base.lower()
-        triggers = ["run", "execute"]
+        triggers = ["运行", "执行", "run", "execute"]
         return any((t.lower() in low for t in triggers))
 
     def _parse_script_args_from_request(self, request_text: str, script_rel: str) -> List[str]:
@@ -744,7 +742,7 @@ class BaseAgent:
                             stderr = str(res.get("stderr") or "")
                             if len(stderr) > 3000:
                                 stderr = stderr[:3000] + "\n...(truncated)"
-                            lines = [f"#### {rel_display} (execution output)", "```text", out.strip(), "```"]
+                            lines = [f"#### {rel_display}（执行输出）", "```text", out.strip(), "```"]
                             if stderr.strip():
                                 lines.extend(["```text", stderr.strip(), "```"])
                             block = "\n".join(lines)
@@ -776,7 +774,7 @@ class BaseAgent:
                     break
 
             if loaded_resources and resource_blocks:
-                chunk_parts.append("#### Additional Resources (Loaded On Demand)")
+                chunk_parts.append("#### 附加资源（按需加载）")
                 chunk_parts.append("\n\n".join(resource_blocks))
 
             chunk = "\n".join(chunk_parts)
@@ -787,7 +785,7 @@ class BaseAgent:
             total += len(chunk)
         if not parts:
             return base, []
-        injected = base + "\n\nRelated Skill References (Loaded On Demand):\n" + "\n\n".join(parts)
+        injected = base + "\n\n相关技能指南（按需加载）：\n" + "\n\n".join(parts)
         return injected, used
     def _stat_inc(self, key: str, amount: int = 1) -> None:
         try:
@@ -855,14 +853,14 @@ class BaseAgent:
             if len(context_str) > 8000:
                 context_str = context_str[:8000] + '...(truncated)'
         reflection_prompt = ChatPromptTemplate.from_template(
-            'You are a strict reviewer (Reflection). Check and revise the draft answer so that it is more accurate, complete, and aligned with the task.\n'
-            'Requirements:\n'
-            '1) Output only the final revised answer. Do not include the analysis or reflection process.\n'
-            '2) Do not invent facts. If something is uncertain, state that clearly and offer a conservative alternative.\n'
-            '3) Preserve the original response language and style.\n\n'
-            'Task:\n{task}\n\n'
-            'Context (if any):\n{context}\n\n'
-            'Draft answer:\n{draft}\n'
+            '你是一个严格的审稿人（Reflection）。你的任务是检查并修正草稿回答，使其更准确、更完整、更符合要求。\n'
+            '要求：\n'
+            '1) 只输出最终修正后的回答，不要输出分析过程或反思过程。\n'
+            '2) 不要编造不存在的事实；如无法确定，明确说明不确定并给出稳妥的替代建议。\n'
+            '3) 保持原有语言风格（中文）。\n\n'
+            '【任务】\n{task}\n\n'
+            '【上下文（如有）】\n{context}\n\n'
+            '【草稿回答】\n{draft}\n'
         )
         chain = reflection_prompt | (llm or self.llm) | StrOutputParser()
         try:
@@ -941,12 +939,12 @@ class BaseAgent:
                 if len(v_str) > 1000:
                     v_str = v_str[:1000] + '...(truncated)'
                 context_str += f'{k}: {v_str}\n'
-            full_task += f'\n\nRelated Context Information:\n{context_str}'
+            full_task += f'\n\n相关上下文信息：\n{context_str}'
         referenced = self._find_referenced_skill_ids(full_task)
         if not referenced:
             skill_ids = self._select_skill_ids_for_task(full_task, config=config)
             if skill_ids:
-                full_task += "\n\nSuggested Skills (Auto-Selected):\n" + "\n".join([f"- {sid}" for sid in skill_ids])
+                full_task += "\n\n可用技能建议（自动选择）：\n" + "\n".join([f"- {sid}" for sid in skill_ids])
         full_task, _ = self._inject_skill_docs_into_task(full_task)
         if len(full_task) > 50000:
             self.logger.warning(f'Task content is too long ({len(full_task)} chars), truncating...')
@@ -1008,14 +1006,14 @@ class BaseAgent:
             if len(context_str) > 8000:
                 context_str = context_str[:8000] + '...(truncated)'
         repair_prompt = ChatPromptTemplate.from_template(
-            'You are a strict JSON repairer (Reflection). Based on the original task and the current output, generate a parseable JSON object with all required fields.\n'
-            'Requirements:\n'
-            '1) Output JSON only, without any explanation.\n'
-            '2) Include all required fields and keep field types reasonable.\n\n'
-            'Original task:\n{task}\n\n'
-            'Context (if any):\n{context}\n\n'
-            'Current output:\n{current}\n\n'
-            'Default structure (must include at least these fields):\n{default}\n\n'
+            '你是一个严格的JSON修复器（Reflection）。请基于原任务与已有输出，生成一个可解析且字段完整的JSON。\n'
+            '要求：\n'
+            '1) 只输出JSON，不要输出解释文字。\n'
+            '2) 必须包含所有必需字段，且字段类型必须合理。\n\n'
+            '【原任务】\n{task}\n\n'
+            '【上下文（如有）】\n{context}\n\n'
+            '【当前输出】\n{current}\n\n'
+            '【默认结构（必须至少包含这些字段）】\n{default}\n\n'
             '{format_instructions}\n'
         )
         chain = repair_prompt | self.llm | parser
@@ -1112,11 +1110,11 @@ class BaseAgent:
         cot_task = (
             str(task or "").rstrip()
             + "\n\n"
-            + "You must output JSON only. Do not output any other text and do not use Markdown code fences.\n"
-            + "Field requirements:\n"
-            + "- final: string, the final output for the user or downstream step\n"
-            + f"- cot_steps: string[], step-by-step reasoning trace, one sentence per step, at most {int(max_steps)} steps\n"
-            + "Hard constraint: cot_steps must only describe reasoning steps, must not fabricate data, and should say 'uncertain' when needed."
+            + "你必须只输出 JSON（不要输出其他任何文本，不要使用 Markdown 代码块）。\n"
+            + "字段要求：\n"
+            + "- final: string，给用户/下游使用的最终输出\n"
+            + f"- cot_steps: string[]，逐步推理链条，每步一句，最多 {int(max_steps)} 步\n"
+            + "硬约束：cot_steps 只描述推理步骤，不要杜撰数据；无法确定就写“不确定”。"
         )
         out = self.decide_json(cot_task, default, context=context, config=config)
         final = out.get("final") if isinstance(out, dict) else ""
@@ -1134,4 +1132,4 @@ class BaseAgent:
                 cleaned_steps.append(ss)
         return {"final": str(final or "").strip(), "cot_steps": cleaned_steps}
     def run(self, task: str, context: Optional[Dict[str, Any]]=None) -> Dict[str, Any]:
-        raise NotImplementedError('Subclasses must implement run().')
+        raise NotImplementedError('子类必须实现run方法')
